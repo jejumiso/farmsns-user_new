@@ -1,11 +1,10 @@
 // src/utils/watchCompanyRealtime.ts
 
 import { onSnapshot, doc } from 'firebase/firestore'
-import { getFirebaseDb } from '~/services/firebaseService'
 import { COLLECTION_PERMISSIONS } from '~/shared-constants/collections'
 import { versionWatchers, type VersionKey } from '@/constants/versionWatchers'
-import { loadVersionCache, saveVersionCache } from '@/utils/versionCache'
-
+import { loadVersionCache, saveVersionCache } from '@/utils/cache/versionCache'
+import { useNuxtApp } from '#app' // 👈 이거 추가
 let unsubscribeCompany: (() => void) | null = null
 
 export function stopCompanyRealtimeWatcher() {
@@ -16,8 +15,14 @@ export function stopCompanyRealtimeWatcher() {
 }
 
 export function watchCompanyRealtime(companyId: string) {
+    // ✅ 이전 구독 해제
+    if (unsubscribeCompany) {
+      unsubscribeCompany()
+      unsubscribeCompany = null
+    }
+    const { $firebaseDb } = useNuxtApp()
   const companyDocRef = doc(
-    getFirebaseDb(),
+    $firebaseDb,
     COLLECTION_PERMISSIONS.company.name,
     companyId
   )
@@ -27,6 +32,7 @@ export function watchCompanyRealtime(companyId: string) {
 
 
   unsubscribeCompany = onSnapshot(companyDocRef, async (snapshot) => {
+    console.log('🔄 회사 정보 변경 감지')
     if (!snapshot.exists()) return
 
     const company = snapshot.data()
@@ -42,11 +48,11 @@ export function watchCompanyRealtime(companyId: string) {
 
         if (majorNew !== majorOld) {
           console.log(`🔁 ${watcher.label} 스키마 변경 감지 → 전체 초기화`)
-          await (watcher.store() as any).syncFromScratch?.()
+          await (watcher.store() as any).syncFromScratch?.(company.id)
 
         } else {
           console.log(`🔄 ${watcher.label} 단순 변경 감지 → 변경 항목만 동기화`)
-          await (watcher.store() as any).syncWithServer?.()
+          await (watcher.store() as any).syncWithServer?.(company.id)
         }
 
         prevVersions[key] = newVersion

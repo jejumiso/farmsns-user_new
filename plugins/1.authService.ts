@@ -1,19 +1,17 @@
 // plugins/1.authService.ts
 import { createAuthService } from '@/services/auth/authService';
-import { initializeFirebase } from '@/services/firebaseService';
+import {
+  initializeFirebase,
+  getFirebaseAuth,
+  getFirebaseDb,
+} from '@/services/firebaseService'
 
 export default defineNuxtPlugin(() => {
   const config = useRuntimeConfig();
 
   // ✅ 디버깅 로그
   console.log('🛠️ Nuxt Plugin 초기화 중...');
-
-
-  // 디버깅 로그 추가
   console.log('Runtime Config (public):', config.public);
-
-  // baseURL 설정
-  // setBaseURL(config.public.API_BASE_URL as string);
 
   // Firebase 초기화
   initializeFirebase({
@@ -31,6 +29,9 @@ console.log('🔧 연결된 Firebase 프로젝트 ID:', config.public.FIREBASE_P
   return {
     provide: {
       authService,
+      firebaseAuth: getFirebaseAuth(), // 👈 여기에 추가!
+      firebaseDb: getFirebaseDb(),     // 👈 여기에 추가!
+
     },
   };
 });

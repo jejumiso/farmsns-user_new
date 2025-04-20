@@ -1,4 +1,3 @@
-import type { Option } from "./option";
 import { Timestamp } from '../../shared/firebase/firebaseTypes';
 
 export interface OptionGroup {
@@ -6,8 +5,8 @@ export interface OptionGroup {
   useParentData: boolean;
   parentOptionGroupId: string;
   optionGroupName: string;
+  displayLevel: number
   optionIds: string[];
-  options: Option[]; // 주의!! firestore에는 저장하지 않음.
   docId: string; 
   isDeleted: boolean;
   dateModified: Timestamp;
@@ -21,8 +20,8 @@ export function createEmptyOptionGroup(): OptionGroup {
     useParentData: false,
     parentOptionGroupId: '',
     optionGroupName: '',
+    displayLevel: 1000,
     optionIds: [],
-    options: [],
     docId: '', 
     isDeleted: false,  
     dateCreated: Timestamp.fromDate(new Date(0)),

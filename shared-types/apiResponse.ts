@@ -7,5 +7,3 @@ export interface ApiResponse<T = any> {
     message?: string;
 }  
 
-
-//페이징은 안할꺼라 lastDocId는 필요없음음

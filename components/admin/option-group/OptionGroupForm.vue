@@ -51,6 +51,7 @@ const props = defineProps<{
   optionGroup: OptionGroup;
   allOptions: Option[];
   isEditMode: boolean;
+  loading: boolean;
 }>();
 
 const emit = defineEmits<{

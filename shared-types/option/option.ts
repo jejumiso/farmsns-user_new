@@ -58,7 +58,7 @@ export function createEmptyOption(): Option {
 
     msg: '',
 
-    displayLevel: 0,
+    displayLevel: 1000,
 
     invalidCombinations: [],
     isDeleted: false,

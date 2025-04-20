@@ -78,6 +78,10 @@ export interface Company {
   categoryVersion : number
   optionVersion: number
   optionGroupVersion: number
+  supportTakeout: boolean      // 포장
+  supportDineIn: boolean       // 매장
+  supportDelivery: boolean     // 배달
+  supportParcel: boolean       // 택배
 }
 
 export function createEmptyCompany(): Company {
@@ -168,6 +172,10 @@ export function createEmptyCompany(): Company {
     categoryVersion: 0,
     optionVersion: 0,
     optionGroupVersion: 0,
+    supportTakeout: false,      // 포장
+    supportDineIn: false,       // 매장
+    supportDelivery: false,     // 배달
+    supportParcel: false        // 택배
   }
 }
 

@@ -54,7 +54,7 @@ export function createEmptyProduct(): Product {
     explanation: '상품설명',
     stockQuantity : -1,
     isDisplay: false,
-    displayLevel: 0,
+    displayLevel: 1000,
     specialPrice: 0,
     specialUsedQty: 0,
     optionGroupId: '',
@@ -68,4 +68,3 @@ export function createEmptyProduct(): Product {
     docId : '',
   }
 }
-

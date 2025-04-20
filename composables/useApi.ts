@@ -1,6 +1,6 @@
 import { useCookie, useRequestHeaders } from '#app'
 import axios from 'axios'
-import { getFirebaseAuth } from '~/services/firebaseService'
+import { useNuxtApp } from '#app' // 👈 이거 추가
 
 export const useApi = () => {
   const config = useRuntimeConfig()
@@ -18,10 +18,11 @@ export const useApi = () => {
       Authorization: token.value ? `Bearer ${token.value}` : undefined,
     },
   })
+  const { $firebaseAuth } = useNuxtApp()
 
   // ✅ 인터셉터: 항상 최신 토큰을 헤더에 설정
   instance.interceptors.request.use(async (config) => {
-    const currentUser = getFirebaseAuth().currentUser
+    const currentUser = $firebaseAuth.currentUser
     if (currentUser) {
       const token  = await currentUser.getIdToken(true)
       // console.log('🔐 [useApi] Authorization 

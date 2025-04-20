@@ -20,7 +20,7 @@ export interface Category {
       id: '',
       docId: '',
       categoryName: '',
-      displayLevel: 0,
+      displayLevel: 1000,
       useParentData: false,
       parentCategoryId: '',
       isDeleted: false,  

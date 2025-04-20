@@ -3,8 +3,8 @@ import type { Option } from '@/shared-types/option/option'
 import { createDocumentService } from '@/services/common/documentService'
 import type { ApiResponse } from '@/shared-types/apiResponse'
 
-export function createOptionService() {
-  const documentService = createDocumentService<Option>('option')
+export function createOptionService(mode: 'guest') {
+  const documentService = createDocumentService<Option>('option', mode)
 
   return {
     /**

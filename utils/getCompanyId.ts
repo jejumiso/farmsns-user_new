@@ -1,6 +1,6 @@
-import { useAuthStore } from "~/stores/auth/useAuthStore";
+import { useUserAuthStore } from "~/stores/userAuth/useUserAuthStore";
 
 export function getCompanyId(): string | null {
-    return useAuthStore().currentCompany?.id || null
+    return useUserAuthStore().customerCompanyActivity?.id || null
   }
   

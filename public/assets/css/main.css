@@ -1,0 +1,5 @@
+/* Google Fonts 추가 */
+@import url("https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@400;700;900&family=Montserrat:wght@400;700;900&family=Poppins:wght@400;700;900&family=Open+Sans:wght@400;700;900&family=Fira+Code:wght@400;700&family=Lato:wght@400;700;900&display=swap");
+
+/* Tailwind CSS 로드 */
+@import 'tailwindcss';

@@ -37,31 +37,36 @@
             <li>
               <button
                 @click="$emit('navigate', '/admin/product')"
-                :class="['w-full text-left px-4 py-2 flex items-center hover:bg-gray-700', currentPath === '/admin/product' ? 'bg-gray-600' : '']"
+                :class="['w-full text-left px-4 py-2 flex items-center hover:bg-gray-700',
+         currentPath.startsWith('/admin/product') ? 'bg-gray-600' : '']"
               >
-                상품
+                상품LIST
               </button>
             </li>
             <li>
               <button
                 @click="$emit('navigate', '/admin/option')"
-                :class="['w-full text-left px-4 py-2 flex items-center hover:bg-gray-700', currentPath === '/admin/option' ? 'bg-gray-600' : '']"
+                :class="[
+  'w-full text-left px-4 py-2 flex items-center hover:bg-gray-700',
+  currentPath.startsWith('/admin/option') && !currentPath.startsWith('/admin/option-group') ? 'bg-gray-600' : ''
+]"
+
               >
-                옵션
+                옵션LIST
               </button>
             </li>
             <li>
               <button
                 @click="$emit('navigate', '/admin/option-group')"
-                :class="['w-full text-left px-4 py-2 flex items-center hover:bg-gray-700', currentPath === '/admin/option-group' ? 'bg-gray-600' : '']"
+                :class="['w-full text-left px-4 py-2 flex items-center hover:bg-gray-700', currentPath.startsWith('/admin/option-group') ? 'bg-gray-600' : '']"
               >
-                옵션그룹
+                옵션그룹LIST
               </button>
             </li>
             <li>
               <button
                 @click="$emit('navigate', '/admin/category')"
-                :class="['w-full text-left px-4 py-2 flex items-center hover:bg-gray-700', currentPath === '/admin/category' ? 'bg-gray-600' : '']"
+                :class="['w-full text-left px-4 py-2 flex items-center hover:bg-gray-700', currentPath.startsWith('/admin/category') ? 'bg-gray-600' : '']"
               >
                 카테고리
               </button>
@@ -121,7 +126,6 @@
 
   </aside>
 </template>
-
 <script setup>
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
@@ -131,8 +135,6 @@ import { useProductStore } from '@/stores/product/useProductStore'
 import { useCategoryStore } from '@/stores/category/useCategoryStore'
 import { useOptionStore } from '@/stores/option/useOptionStore'
 import { useOptionGroupStore } from '@/stores/option-group/useOptionGroupStore'
-
-
 
 import { clearCompanyCache } from '@/utils/companyCache'
 
@@ -163,9 +165,6 @@ function resetStores() {
   console.log('🧹 저장소 + 캐시 초기화 완료')
 }
 
-
-
-
 async function syncProductStore() {
   const productStore = useProductStore()
   var res = await productStore.syncWithServer()
@@ -188,75 +187,87 @@ function toggleProductMenu() {
 
 async function logout() {
   try {
-    await authStore.logout(); // 로그아웃 처리
+    await authStore.logout();
   } catch (error) {
     console.error('로그아웃 실패:', error);
   }
 }
 
-// 현재 경로를 감시하여 상품관리 메뉴를 자동으로 열기
 watch(
   () => router.currentRoute.value.path,
   (newPath) => {
     currentPath.value = newPath;
-    // 상품, 옵션, 옵션그룹, 카테고리 경로일 때 상품관리 메뉴 열기
-    const productPaths = [
+
+    isProductMenuOpen.value = [
       '/admin/product',
-      '/admin/product/create',
-      '/admin/product/edit/[id]', // 🔥 추가!
       '/admin/option',
-      '/admin/option/create',
-      '/admin/option/edit/[id]', // 🔥 추가!      
       '/admin/option-group',
-      '/admin/categories',
-    ];
-
-    const isProductPath =
-      productPaths.includes(newPath) ||
-      productPaths.some(path =>
-        path.includes('[id]') && (newPath.startsWith('/admin/product/edit/') || newPath.startsWith('/admin/option/edit/'))
-      );
-
-    isProductMenuOpen.value = isProductPath;
+      '/admin/category',
+    ].some(path => newPath.startsWith(path))
   },
   { immediate: true }
-);
+)
 </script>
 
+
 <style scoped>
-.logout-button {
+.logout-button,
+.reset-button,
+.bg-blue-600 {
   margin-top: 1rem;
   padding: 0.5rem 1rem;
-  background-color: #ef4444;
+  background-color: #2563eb;
   color: #ffffff;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-size: 1rem;
-  display: flex; /* 기존 */
-  align-items: center; /* 기존 */
-  justify-content: center; /* 추가 */
-}
-
-.logout-button:hover {
-  background-color: #dc2626;
-}
-
-.reset-button {
-  margin-top: 1rem;
-  padding: 0.5rem 1rem;
-  background-color: #3b82f6;
-  color: #ffffff;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 1rem;
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   justify-content: center;
-}
-.reset-button:hover {
-  background-color: #2563eb;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+.logout-button:hover,
+.reset-button:hover,
+.bg-blue-600:hover {
+  background-color: #1e40af;
+}
+
+aside {
+  background-color: #1f2937; /* gray-800 */
+  color: white;
+  width: 260px;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #374151; /* gray-700 */
+}
+
+aside .font-bold {
+  color: #f9fafb;
+}
+
+nav ul li button {
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+  font-size: 0.95rem;
+}
+
+nav ul li button:hover {
+  background-color: #374151; /* gray-700 */
+}
+
+.bg-gray-600 {
+  background-color: #4b5563 !important;
+}
+
+.bg-yellow-500 {
+  background-color: #facc15 !important;
+  color: black !important;
+}
+
+.border-yellow-500 {
+  border-color: #facc15 !important;
+}
 </style>

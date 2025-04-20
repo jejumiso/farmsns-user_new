@@ -3,8 +3,8 @@ import type { Category } from '@/shared-types/category/category'
 import { createDocumentService } from '@/services/common/documentService'
 import type { ApiResponse } from '~/shared-types/apiResponse'
 
-export function createCategoryService() {
-  const documentService = createDocumentService<Category>('category') // 'categories'는 collectionId입니다.
+export function createCategoryService(mode: 'guest') {
+  const documentService = createDocumentService<Category>('category', mode) // 'categories'는 collectionId입니다.
 
   return {
     /**

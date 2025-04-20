@@ -1,17 +1,37 @@
-<script setup lang="ts">
-import { useRouter } from 'vue-router';
-import {  onMounted } from 'vue';
-
-const router = useRouter();
-
-onMounted(() => {
-  router.push('/admin'); // 관리자 최상단 페이지로 리다이렉트
-});
-</script>
-
 <template>
-  <div></div>
+  <div class="flex flex-col items-center justify-center min-h-screen bg-gray-50">
+    <h1 class="text-2xl font-bold mb-6">🐥 Welcome to FarmSNS</h1>
+
+    <NuxtLink
+      to="/farmsns"
+      class="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition mb-4"
+    >
+      farmsns 매장 보기
+    </NuxtLink>
+
+    <NuxtLink
+  to="/token/c95f96f8ab8298c538f26e9f3c3caa4587fd4817de2cca627aeff4a618a7f0c5"
+  class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-4"
+>
+  자동 로그인 테스트
+</NuxtLink>
+
+
+    <!-- 🔥 모든 캐시 삭제 버튼 -->
+    <button
+      @click="clearAllCaches"
+      class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
+    >
+      모든 캐시 삭제
+    </button>
+  </div>
 </template>
 
-<style>
-</style>
+<script setup lang="ts">
+import { clearAllCompanyCaches } from '@/utils/cache/companyCache'
+
+function clearAllCaches() {
+  clearAllCompanyCaches()
+  alert('✅ 모든 캐시가 삭제되었습니다.')
+}
+</script>
