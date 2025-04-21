@@ -50,6 +50,16 @@ import { useRoute } from 'vue-router'
 import { handleCompanyChange } from '~/composables/company/useCompanyChange'
 
 const route = useRoute()
+watch(
+  () => route.params.companyId,
+  (newCompanyId) => {
+    if (typeof newCompanyId === 'string') {
+      handleCompanyChange(newCompanyId)
+    }
+  },
+  { immediate: true } // 페이지 로드시 즉시 실행
+)
+
 
 function isActive(path: string) {
   return route.path.endsWith(path)

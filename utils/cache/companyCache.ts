@@ -13,7 +13,7 @@ const CACHE_KEY_PREFIX = 'companyDataCache'
 export function getCompanyCache<T>(type: string, companyId: string): { data: T; updatedAt: number } | null {
   const key = `${CACHE_KEY_PREFIX}:${type}:${companyId}`
   const raw = localStorage.getItem(key)
-  console.log('restoreCache getCompanyCache', key, raw)
+  // console.log('restoreCache getCompanyCache', key, raw)
 
   if (!raw) return null
 

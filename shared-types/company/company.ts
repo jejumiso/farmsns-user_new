@@ -1,122 +1,212 @@
-// path: src/types/company/company.ts
-import { Timestamp, GeoPoint } from '../../shared/firebase/firebaseTypes';
-import type { DeliveryCost } from '../deliveryCost/deliveryCost'
-import type { Product } from '../product/product'
-import type { Category } from '../category/category'
-import type { Option } from '../option/option'
-import type { TabletSettings } from '../tablet-settings/tabletSettings'
+// shared-types/company/company.ts
+import { Timestamp, GeoPoint, DocumentReference } from '@/shared/firebase/firebaseTypes'
+import type { DeliveryCost } from '@/shared-types/deliveryCost/deliveryCost'
 
-export interface Company {
-  id: string
-  storeType: string
-  isOpen: boolean
-  parentCompanyId: string
-  isHeadCompany: boolean
-  shopName: string
-  imgUrl: string
-  imgUrls: string[]
-  timeNowClose: Timestamp | null
-  timeOrderOpen: Timestamp | null
-  timeOrderClose: Timestamp | null
-  timeShopClose: Timestamp | null
-  timeShopOpen: Timestamp | null
-  isOpenYearRound: boolean
-  isOpen24Hours: boolean
-  notice: string
-  isNoticeDisplay: boolean
-  saveType: string
+export interface RewardPolicy {
+  saveType: 'point' | 'stamp'
   savedRatePrepaidPoint: number
   savedRatePrepaidCash: number
   savedRatePrepaidCard: number
   savedRateDeferredpayCard: number
   savedRateDeferredpayCash: number
-  password: string
-  kakaoChannelId: string
-  resPhoneNumber: string
-  resPhoneNumber2: string
-  senderKey: string
-  sender: string
-  resSenderKey: string
-  resSender: string
-  kakaoInfo: {
-    kakaoChannelId: string
-    noticeCodeDeliveryStart: string
-    noticeCodeGiftRecipient: string
-    noticeCodeGiftSender: string
-    noticeCodeOrderComplete: string
-    noticeCodeOrderReady: string
-    noticeCodePurchaseStamp: string
-    resSender: string
-    resSenderKey: string
-  }
-  templates: string[]
-  templatesStanby: string[]
-  isReceivePacking: boolean
-  isReceiveInside: boolean
-  isReceiveDelivery: boolean
-  brandName: string
-  ceoName: string
-  accountNum: string
-  accountName: string
-  accountBank: string
-  postCode: string
-  address1: string
-  address2: string
-  geoLatitude: number
-  geoLongitude: number
-  geoPoint: GeoPoint | null
-  geoHash: string
-  deliveryCost: DeliveryCost | null
-  dateCreated: Timestamp | null
-  dateModified: Timestamp | null
-  productsUser: Product[]
-  categoriesUser: Category[]
-  optionsUser: Option[]
-  idCompany: string
-  tabletSettings: TabletSettings
-  productVersion : number
-  categoryVersion : number
-  optionVersion: number
-  optionGroupVersion: number
-  supportTakeout: boolean      // 포장
-  supportDineIn: boolean       // 매장
-  supportDelivery: boolean     // 배달
-  supportParcel: boolean       // 택배
+  stampRules: {
+    stampCount: number
+    couponId: string
+  }[]
 }
 
+export interface KakaoInfo {
+  kakaoChannelId: string
+  noticeCodeDeliveryStart: string
+  noticeCodeGiftRecipient: string
+  noticeCodeGiftSender: string
+  noticeCodeOrderComplete: string
+  noticeCodeOrderReady: string
+  noticeCodePurchaseStamp: string
+  securedSender: string
+  securedSenderKey: string
+}
+
+export interface BusinessHours {
+  timeNowClose: Timestamp | null
+  timeOrderOpen: Timestamp | null
+  timeOrderClose: Timestamp | null
+  timeShopOpen: Timestamp | null
+  timeShopClose: Timestamp | null
+  isOpenYearRound: boolean
+  isOpen24Hours: boolean
+}
+
+export interface BusinessInfo {
+  shopName: string
+  brandName: string
+  ceoName: string
+  address_name: string
+  road_address_name: string
+  building_name: string
+  encryptedDetailAddress: string
+  postCode: string
+  geoPoint: GeoPoint | null
+  geoHash: string
+  businessRegistrationNumber: string // 사업자 등록번호
+  permitNumber: string // 영업 허가번호
+  telecomBusinessNumber: string // 통신판매업 번호
+}
+
+export interface ContactInfo {
+  securedPhoneMain: string // 대표 핸드폰번호
+  securedPhoneSub1: string
+  securedPhoneSub2: string
+  securedLandlineMain: string // 대표 유선전화
+  phoneSuffix: string
+  securedEmail: string
+  emailHash: string
+}
+
+export interface VersionInfo {
+  productVersion: number
+  categoryVersion: number
+  optionVersion: number
+  optionGroupVersion: number
+}
+
+export interface OrderSupport {
+  supportTakeout: boolean
+  supportDineIn: boolean
+  supportDelivery: boolean
+  supportParcel: boolean
+}
+
+export interface Company {
+  id: string
+
+
+  // 소속 관계
+  companyParentRef: DocumentReference | null
+  isHeadCompany: boolean
+
+  // 운영 상태
+  isOpen: boolean
+
+  // 영업 시간 및 정책
+  businessHours: BusinessHours
+
+  // 위치 정보
+  businessInfo: BusinessInfo
+
+  // 이미지
+  imageThumbnailFileName: string
+  imageGalleryFileNames: string[]
+
+  // 공지
+  notice: string
+  isNoticeDisplay: boolean
+
+  // 주문 지원
+  orderSupport: OrderSupport
+
+  // 배송비
+  deliveryCost: DeliveryCost
+
+  // 적립 정책
+  rewardPolicy: RewardPolicy
+
+  // 연락처 및 인증 정보
+  contactInfo: ContactInfo
+
+  // 카카오 알림톡 설정
+  kakaoInfo: KakaoInfo
+
+  // 버전 정보
+  versionInfo: VersionInfo
+
+  searchField: string[] // 검색을 위한 키워드 (예: 전화번호 끝 4자리, 이메일 해시 등)
+
+
+  // 메타
+  dateCreated: Timestamp | null
+  dateModified: Timestamp | null
+  iv: string // 🔐 문서 암호화 IV
+}
 export function createEmptyCompany(): Company {
+  const now = Timestamp.now()
+
   return {
     id: '',
-    storeType: '',
-    isOpen: false,
-    parentCompanyId: '',
+
+
+    companyParentRef: null,
     isHeadCompany: false,
-    shopName: '',
-    imgUrl: '',
-    imgUrls: [],
-    timeNowClose: null,
-    timeOrderOpen: null,
-    timeOrderClose: null,
-    timeShopClose: null,
-    timeShopOpen: null,
-    isOpenYearRound: false,
-    isOpen24Hours: false,
+
+    isOpen: false,
+
+    businessHours: {
+      isOpenYearRound: false,
+      isOpen24Hours: false,
+      timeNowClose: null,
+      timeOrderOpen: null,
+      timeOrderClose: null,
+      timeShopOpen: null,
+      timeShopClose: null,
+    },
+
+    businessInfo: {
+      shopName: '',
+      brandName: '',
+      ceoName: '',
+      address_name: '',
+      road_address_name: '',
+      building_name: '',
+      encryptedDetailAddress: '',
+      postCode: '',
+      geoPoint: null,
+      geoHash: '',
+      businessRegistrationNumber: '',
+      permitNumber: '',
+      telecomBusinessNumber: ''
+    },
+
+    imageThumbnailFileName: '',
+    imageGalleryFileNames: [],
+
     notice: '',
     isNoticeDisplay: false,
-    saveType: '',
-    savedRatePrepaidPoint: 0,
-    savedRatePrepaidCash: 0,
-    savedRatePrepaidCard: 0,
-    savedRateDeferredpayCard: 0,
-    savedRateDeferredpayCash: 0,
-    password: '',
-    kakaoChannelId: '',
-    resPhoneNumber: '',
-    resPhoneNumber2: '',
-    senderKey: '',
-    sender: '',
-    resSenderKey: '',
-    resSender: '',
+
+    orderSupport: {
+      supportTakeout: false,
+      supportDineIn: false,
+      supportDelivery: false,
+      supportParcel: false,
+    },
+
+    deliveryCost: {
+      basicCost: 0,
+      basicM: 0,
+      addCost: 0,
+      addM: 0,
+      supportStrCost: '',
+    },
+
+    rewardPolicy: {
+      saveType: 'point',
+      savedRatePrepaidPoint: 0,
+      savedRatePrepaidCash: 0,
+      savedRatePrepaidCard: 0,
+      savedRateDeferredpayCard: 0,
+      savedRateDeferredpayCash: 0,
+      stampRules: [],
+    },
+
+    contactInfo: {
+      securedPhoneMain: '',
+      securedPhoneSub1: '',
+      securedPhoneSub2: '',
+      securedLandlineMain:'',
+      phoneSuffix: '',
+      securedEmail: '',
+      emailHash: '',
+    },
+
     kakaoInfo: {
       kakaoChannelId: '',
       noticeCodeDeliveryStart: '',
@@ -125,58 +215,21 @@ export function createEmptyCompany(): Company {
       noticeCodeOrderComplete: '',
       noticeCodeOrderReady: '',
       noticeCodePurchaseStamp: '',
-      resSender: '',
-      resSenderKey: '',
+      securedSender: '',
+      securedSenderKey: '',
     },
-    templates: [],
-    templatesStanby: [],
-    isReceivePacking: false,
-    isReceiveInside: false,
-    isReceiveDelivery: false,
-    brandName: '',
-    ceoName: '',
-    accountNum: '',
-    accountName: '',
-    accountBank: '',
-    postCode: '',
-    address1: '',
-    address2: '',
-    geoLatitude: 0,
-    geoLongitude: 0,
-    geoPoint: null,
-    geoHash: '',
-    deliveryCost: {
-      basicCost: 0,
-      basicM: 0,
-      addCost: 0,
-      addM: 0,
-      supportStrCost: ''
+
+    versionInfo: {
+      productVersion: 0,
+      categoryVersion: 0,
+      optionVersion: 0,
+      optionGroupVersion: 0,
     },
-    dateCreated: null,
-    dateModified: null,
-    productsUser: [],
-    categoriesUser: [],
-    optionsUser: [],
-    idCompany: '',
-    tabletSettings: {
-      useStandbyScreen: false,
-      allowTouchOnStandby: false,
-      useRewardInputScreen: false,
-      usePhoneInputScreen: true,
-      rewardType: 'stamp',
-      pendingRewardAmount: 0,
-      rewardResetValue: 0,
-      dateCreated: null,
-    } as TabletSettings,
-    productVersion: 0,
-    categoryVersion: 0,
-    optionVersion: 0,
-    optionGroupVersion: 0,
-    supportTakeout: false,      // 포장
-    supportDineIn: false,       // 매장
-    supportDelivery: false,     // 배달
-    supportParcel: false        // 택배
+    searchField: [], // 검색을 위한 키워드 (예: 전화번호 끝 4자리, 이메일 해시 등)
+
+
+    dateCreated: now,
+    dateModified: now,
+    iv: '', // 🔐 문서 암호화 IV
   }
 }
-
-

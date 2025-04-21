@@ -39,7 +39,7 @@ export function watchCompanyRealtime(companyId: string) {
 
     for (const key of Object.keys(versionWatchers) as VersionKey[]) {
       const watcher = versionWatchers[key]
-      const newVersion = company[key]
+      const newVersion = company.versionInfo?.[key]
       const oldVersion = prevVersions[key]
 
       if (typeof newVersion === 'number' && typeof oldVersion === 'number' && newVersion !== oldVersion) {

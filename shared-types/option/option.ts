@@ -1,69 +1,71 @@
-// /types/Option/optionModel.ts
-import { Timestamp } from '../../shared/firebase/firebaseTypes';
+import { Timestamp } from '../../shared/firebase/firebaseTypes'
+
+// 충돌 조합 정의: 특정 옵션값 간 충돌 및 경고 메시지 표시
 export interface InvalidCombination {
-  optionId: string;              // 다른 옵션 ID
-  thisValue: string[];            // 현재 옵션의 특정 값
-  otherValue: string[];           // 충돌되는 값
-  warningMsg: string;           // 사용자에게 보여줄 안내 메시지
+  optionId: string // 대상 옵션 ID
+  thisValue: string[] // 현재 옵션의 값
+  otherValue: string[] // 충돌되는 옵션의 값
+  warningMsg: string // 사용자에게 보여줄 안내 메시지
 }
 
-// 사용자가 선택할 수 있는 옵션 타입 정의
+// 옵션 선택 방식
 export type OptionType =
-  | 'select'     // 항목 선택형 (가격은 0일 수도, 유료일 수도 있음)
-  | 'check'      // 체크박스 선택
-  | 'quantity';  // 수량 선택
+  | 'select'    // 드롭다운 / 선택형
+  | 'check'     // 체크박스
+  | 'quantity'  // 수량 조절형
 
+// UI 스타일 종류
+export type OptionStyleType =
+  | 'default'
+  | 'emphasized'
+  | 'inline'
+  | 'segmented'
+  | 'required-highlight'
 
+// 옵션 인터페이스
 export interface Option {
-  id: string;
-  docId: string; // 문서 ID (옵션이 속한 문서의 ID)
+  id: string // 옵션 ID
+  useParentData: boolean
+  parentOptionId: string
 
-  useParentData: boolean;
-  parentOptionId: string;
+  optionName: string // 옵션명
+  type: OptionType // 옵션 타입
+  styleType: OptionStyleType // UI 스타일
 
-  optionName: string;
-  type:  OptionType;
-  styleType: string;
+  optionItems: string[] // 선택 가능한 항목들
+  optionItemsPrice: number[] // 각 항목별 추가 가격
 
-  optionItems: string[];
-  optionItemsPrice: number[];
+  msg: string // 하단 안내 메시지
+  displayLevel: number // 정렬 우선순위
 
-  msg: string;
+  invalidCombinations: InvalidCombination[] // 유효하지 않은 조합
+  isDeleted: boolean // 삭제 여부
 
-  displayLevel: number;
-
-  // 충돌 조합 정보 (단순 + 복합 대응 가능)
-  invalidCombinations?: InvalidCombination[];
-  isDeleted: boolean;
-  dateCreated: Timestamp | null;
-  dateModified: Timestamp | null;
+  dateCreated: Timestamp | null // 생성일
+  dateModified: Timestamp | null // 수정일
 }
 
-
-// /types/Option/optionModel.ts (하단에 추가)
+// 빈 옵션 생성 함수
 export function createEmptyOption(): Option {
   return {
     id: '',
-    docId: '',
-
     useParentData: false,
     parentOptionId: '',
 
+    
     optionName: '',
     type: 'select',
-    styleType: '',
+    styleType: 'default',
 
     optionItems: [],
     optionItemsPrice: [],
 
     msg: '',
-
     displayLevel: 1000,
 
     invalidCombinations: [],
     isDeleted: false,
     dateCreated: null,
     dateModified: null,
-    
-  };
+  }
 }

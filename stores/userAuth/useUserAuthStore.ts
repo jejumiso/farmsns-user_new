@@ -4,6 +4,8 @@ import type { User } from 'firebase/auth'
 import type { CustomerCompanyActivity } from '@/shared-types/customer-company-activity/customerCompanyActivity'
 import type { CustomerProfile } from '~/shared-types/customer-profile/customerProfile'
 import { getAuth, signOut } from 'firebase/auth'
+import { encryptWithIv } from '~/shared-utils/crypto/encryption'
+import { decryptWithIv } from '~/shared-utils/crypto/decryption'
 export const useUserAuthStore = defineStore('userAuth', {
   state: () => ({
     currentUser: null as User | null, // Firebase 인증 사용자
@@ -13,7 +15,10 @@ export const useUserAuthStore = defineStore('userAuth', {
 
   getters: {
     isLoggedIn: (state) => !!state.currentUser,
-    customerName: (state) => state.customerProfile?.userName || '',
+    customerName: (state) =>
+      state.customerProfile && state.customerProfile.securedUserName && state.customerProfile.iv
+        ? decryptWithIv(state.customerProfile.securedUserName, state.customerProfile.iv)
+        : 'x',
     customerStampCount: (state) => state.customerCompanyActivity?.stampCount ?? 0,
   },
 

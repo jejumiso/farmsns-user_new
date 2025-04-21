@@ -10,7 +10,7 @@
     </NuxtLink>
 
     <NuxtLink
-  to="/token/c95f96f8ab8298c538f26e9f3c3caa4587fd4817de2cca627aeff4a618a7f0c5"
+  to="/token/4a075a9ffe353bd3453414300b47f9857051f39891a97e1e9585905b96fff703"
   class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-4"
 >
   자동 로그인 테스트

@@ -2,9 +2,7 @@ import { Timestamp } from "@/shared/firebase/firebaseTypes"
 import { type Coupon } from "../coupon/coupon"
 
 export interface CustomerCompanyActivity {
-  id: string // 문서 ID
-  securedPhone: string // 복호화된 전화번호 (사용자 전화번호)
-  phoneNumber: string // 사용자 전화번호 (복호화된 상태)
+  id: string // uid
 
   // 스탬프 관련
   stampCount: number // 총 적립된 스탬프 횟수
@@ -35,14 +33,11 @@ export interface CustomerCompanyActivity {
 
 export function createEmptyCustomerCompanyActivity(params: {
   id: string
-  securedPhone: string
 }): CustomerCompanyActivity {
   const now = Timestamp.now()
 
   return {
     id: params.id,
-    securedPhone: params.securedPhone,
-    phoneNumber: '', // 복호화된 전화번호 (사용자 전화번호)
 
     // 스탬프 관련
     stampCount: 0,

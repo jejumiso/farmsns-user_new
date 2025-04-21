@@ -39,7 +39,7 @@
           />
           <div class="mt-2 text-sm text-center">{{ product.productName }}</div>
           <div class="mt-1 text-green-700 font-semibold text-center">
-            {{ product.priceSale?.toLocaleString?.() + ' 원' || '가격 미정' }}
+            {{ product.priceDiscounted?.toLocaleString?.() + ' 원' || '가격 미정' }}
           </div>
         </NuxtLink>
       </div>
@@ -83,10 +83,13 @@ const categories = computed(() =>
 
 const filteredProducts = computed(() => {
   const selected = viewStore.selectedCategoryId
-  if (!selected) return productStore.items
-  return productStore.items.filter(p =>
-    Array.isArray(p.categories) && p.categories.includes(selected)
-  )
+  const items = !selected
+    ? productStore.items
+    : productStore.items.filter(p =>
+        Array.isArray(p.categories) && p.categories.includes(selected)
+      )
+
+  return items.slice().sort((a, b) => a.displayLevel - b.displayLevel)
 })
 
 onMounted(async () => {

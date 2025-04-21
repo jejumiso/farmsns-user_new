@@ -98,7 +98,7 @@ function addToCart() {
       />
 
       <h1 class="text-xl font-semibold text-center">{{ product?.productName }}</h1>
-      <p class="text-green-600 text-lg text-center">{{ product?.priceSale?.toLocaleString() + '원' }}</p>
+      <p class="text-green-600 text-lg text-center">{{ product?.priceDiscounted?.toLocaleString() + '원' }}</p>
 
       <!-- 옵션 선택 -->
       <ProductOptions
@@ -107,7 +107,6 @@ function addToCart() {
         v-model:selectedOptions="selectedOptions"
         v-model:quantity="quantity"
       />
-
       <button
         class="w-full py-3 mt-6 bg-green-600 text-white rounded shadow hover:bg-green-700"
         @click="addToCart"

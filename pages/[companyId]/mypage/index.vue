@@ -17,8 +17,8 @@ const handleLogout = async () => {
 
     <div class="bg-white rounded-xl shadow p-4">
         {{ authStore.customerProfile }}
-      <p><strong>이름:</strong> {{ authStore.customerProfile?.userName || '알 수 없음' }}</p>
-      <p><strong>전화번호:</strong> {{ authStore.customerProfile?.securedPhone || '없음' }}</p>
+      <p><strong>이름:</strong> {{ authStore.customerProfile?.securedUserName || '알 수 없음' }}</p>
+      <p><strong>전화번호:</strong> {{ authStore.customerProfile?.contactInfo.securedPhoneMain || '없음' }}</p>
       <p><strong>총 주문 수:</strong> {{ authStore.customerProfile?.orderTotalCount ?? 0 }}</p>
       <p><strong>등급:</strong> {{ authStore.customerProfile?.customerRating || '없음' }}</p>
     </div>

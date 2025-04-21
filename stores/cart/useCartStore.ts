@@ -3,10 +3,11 @@ import { defineStore } from 'pinia'
 import type { Product } from '@/shared-types/product/product'
 
 export interface CartItem {
-  id: number // ✅ 고유 ID 추가
+  id: number
   productId: string
   productName: string
-  priceSale: number
+  priceOriginal: number
+  priceDiscounted: number
   quantity: number
   image: string
   options: {
@@ -28,28 +29,30 @@ export const useCartStore = defineStore('cart', {
     totalQuantity: state =>
       state.items.reduce((sum, item) => sum + item.quantity, 0),
 
-    totalPrice: state =>
+    totalFinalPrice: state =>
       state.items.reduce(
         (sum, item) =>
           sum +
           item.quantity *
-            (item.priceSale +
+            (item.priceDiscounted +
               item.options.reduce((oSum, o) => oSum + o.price, 0)),
+        0
+      ),
+
+    totalOriginalPrice: state =>
+      state.items.reduce(
+        (sum, item) => sum + item.quantity * item.priceOriginal,
         0
       ),
   },
 
   actions: {
-    /**
-     * 상품과 옵션을 장바구니에 담기
-     */
     addToCartWithOptions(
       product: Product,
       options: CartItem['options'],
       quantity: number
     ) {
       const key = `${product.id}-${JSON.stringify(options)}`
-
       const existing = this.items.find(
         i => `${i.productId}-${JSON.stringify(i.options)}` === key
       )
@@ -58,10 +61,11 @@ export const useCartStore = defineStore('cart', {
         existing.quantity += quantity
       } else {
         const newItem: CartItem = {
-          id: Date.now(), // ✅ 유니크 ID 생성
+          id: Date.now(),
           productId: product.id,
           productName: product.productName,
-          priceSale: product.priceSale,
+          priceOriginal: product.priceOriginal,
+          priceDiscounted: product.priceDiscounted,
           quantity,
           image: product.imageThumbnailFileName,
           options,
@@ -71,17 +75,14 @@ export const useCartStore = defineStore('cart', {
       }
     },
 
-    /**
-     * 고유 ID 기준으로 장바구니 항목 삭제
-     */
     removeItemById(index: number) {
       this.items.splice(index, 1)
     },
+
     updateQuantity(index: number, newQty: number) {
       if (newQty < 1) return
       this.items[index].quantity = newQty
     },
-    
 
     clearCart() {
       this.items = []

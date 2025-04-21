@@ -54,7 +54,7 @@ onMounted(async () => {
       router.replace(`/`)
     }else{
       // 4. 회사의 상품 페이지로 이동
-      router.replace(`/${result.data.customerCompanyActivity.id}`)
+      router.replace(`/${result.data.companyId}/products`)
     }
 
     
