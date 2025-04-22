@@ -2,7 +2,7 @@ import type { OptionGroup } from '@/shared-types/option/optionGroup'
 import { createDocumentService } from '@/services/common/documentService'
 import type { ApiResponse } from '@/shared-types/apiResponse'
 
-export function createOptionGroupService(mode: 'guest') {
+export function createOptionGroupService(mode: 'admin' |'guest') {
   const documentService = createDocumentService<OptionGroup>('optionGroup', mode)
 
   return {

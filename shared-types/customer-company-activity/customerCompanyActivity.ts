@@ -1,5 +1,4 @@
 import { Timestamp } from "@/shared/firebase/firebaseTypes"
-import { type Coupon } from "../coupon/coupon"
 
 export interface CustomerCompanyActivity {
   id: string // uid
@@ -17,7 +16,6 @@ export interface CustomerCompanyActivity {
   pointTotal: number // 누적된 전체 포인트
 
   // 쿠폰 관련
-  coupons: Coupon[]
  // TODO: 쿠폰 타입 지정 추천
 
   // 주문 관련
@@ -52,7 +50,6 @@ export function createEmptyCustomerCompanyActivity(params: {
     pointTotal: 0,
 
     // 쿠폰 관련
-    coupons: [] as Coupon[],
 
     // 주문 관련
     shopPoint: 0,

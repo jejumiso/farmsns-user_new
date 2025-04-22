@@ -1,6 +1,7 @@
 import { Timestamp } from '@/shared/firebase/firebaseTypes'
 import type { DeliveryAddress } from '@/shared-types/delivery-address/deliveryAddress'
 import { type ContactInfo } from '../company/company'
+import type { IssuedCoupon } from '../coupon/issuedCoupon'
 
 export interface CustomerProfile {
   id: string // Firebase UID (문서 ID)
@@ -12,11 +13,14 @@ export interface CustomerProfile {
   companyIds: string[] // 가입한 업체 목록
   isMember: boolean // 멤버십 여부
   deliveryAddressList: DeliveryAddress[] // 배송지 목록
+  defaultDeliveryAddressId: string   // ✅ 기본 배송지 ID (주소 배열에서 참조)
+
   customerRating: string // 고객 등급
   orderTotalCount: number // 총 주문 횟수
   orderTotalPrice: number // 총 주문 금액
   rewardCount: number // 리워드 횟수
   rewardCompany: string // 리워드 지급 업체
+  coupons: IssuedCoupon[]
   version: number // 데이터 구조 버전
 
   searchField: string[] // 검색을 위한 키워드 (예: 전화번호 끝 4자리, 이메일 해시 등)  
@@ -53,12 +57,13 @@ export function createEmptyCustomerProfile(params: {
     companyIds: [],
     isMember: false,
     deliveryAddressList: [],
+    defaultDeliveryAddressId: '',
     customerRating: '',
     orderTotalCount: 0,
     orderTotalPrice: 0,
     rewardCount: 0,
     rewardCompany: '',
-
+    coupons: [],
     version: 1,
 
     searchField: params.searchField,

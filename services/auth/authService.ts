@@ -6,12 +6,28 @@ import type { Administrator } from '@/shared-types/administrator/administrator';
 import type { Company } from '@/shared-types/company/company';
 import type { ApiResponse } from '@/shared-types/apiResponse';
 import { getFirebaseAuth } from '../firebaseService';
+import { createDocumentService } from '../common/documentService';
+import type { CustomerProfile } from '~/shared-types/customer-profile/customerProfile';
 
 export function createAuthService() {
   const api = useApi() // ✅ 여기서 axios 인스턴스 생성
   const auth = getFirebaseAuth();
 
+
+  const documentService = createDocumentService<CustomerProfile>('user','guest') // 'categories'는 collectionId입니다.
+
+
+
   return {
+
+    /**
+     * 단일 카테고리 조회
+     */
+    async getCustomerByUid(uid:string) {
+      return await documentService.getOne('', uid)
+    },
+
+
     async sendSms(phoneNumber: string): Promise<void> {
       try {
         const response = await api.post('/api/auth/send-sms', { phoneNumber }); // api 인스턴스 사용

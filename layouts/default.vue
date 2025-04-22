@@ -47,17 +47,20 @@
 <script setup lang="ts">
 import { computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
-import { handleCompanyChange } from '~/composables/company/useCompanyChange'
+import { handleCompanyChange } from '@/composables/company/useCompanyChange'
+import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
 
 const route = useRoute()
+const authStore = useUserAuthStore()
 watch(
-  () => route.params.companyId,
-  (newCompanyId) => {
-    if (typeof newCompanyId === 'string') {
-      handleCompanyChange(newCompanyId)
+  () => [route.params.companyId, authStore.currentUser?.uid],
+  ([companyId, uid]) => {
+    if (typeof companyId === 'string' && uid) {
+      console.log('💡 회사 또는 유저 변경 감지:', companyId)
+      handleCompanyChange(authStore.currentUser?.uid, companyId)
     }
   },
-  { immediate: true } // 페이지 로드시 즉시 실행
+  { immediate: true }
 )
 
 
@@ -66,7 +69,28 @@ function isActive(path: string) {
 }
 
 // ✅ 하단 네비게이션을 숨길 경로 조건
-const isFullModalPage = computed(() =>
-  ['/products/', '/cart','/orders'].some(path => route.path.includes(path))
-)
+const isFullModalPage = computed(() => {
+  const segments = route.path.split('/').filter(Boolean)
+
+  // 상품 상세: /products/{id}
+  if (segments.includes('products') && segments.length > segments.indexOf('products') + 1) {
+    return true
+  }
+
+  // 카트나 주문 페이지: cart / order 하위
+  if (segments.includes('cart') || segments.includes('order')) {
+    return true
+  }
+
+  // 마이페이지 주소 관리
+  if (segments.includes('mypage') && segments.includes('address')) {
+    return true
+  }
+
+  return false
+})
+
+
+
+
 </script>

@@ -79,7 +79,7 @@ function addToCart() {
   })
 
   cartStore.addToCartWithOptions(product.value, optionResults, quantity.value)
-  alert('장바구니에 담겼습니다!')
+  // alert('장바구니에 담겼습니다!')
   closeModal()
 }
 </script>

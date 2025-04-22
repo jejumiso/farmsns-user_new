@@ -1,11 +1,13 @@
-// stores/userAuth/useUserAuthStore.ts
 import { defineStore } from 'pinia'
 import type { User } from 'firebase/auth'
 import type { CustomerCompanyActivity } from '@/shared-types/customer-company-activity/customerCompanyActivity'
 import type { CustomerProfile } from '~/shared-types/customer-profile/customerProfile'
 import { getAuth, signOut } from 'firebase/auth'
-import { encryptWithIv } from '~/shared-utils/crypto/encryption'
 import { decryptWithIv } from '~/shared-utils/crypto/decryption'
+import { createAuthService } from '~/services/auth/authService'
+import { stopCompanyRealtimeWatcher } from '~/utils/watchCompanyRealtime'
+import { useCartStore } from '~/stores/cart/useCartStore'
+
 export const useUserAuthStore = defineStore('userAuth', {
   state: () => ({
     currentUser: null as User | null, // Firebase 인증 사용자
@@ -35,8 +37,44 @@ export const useUserAuthStore = defineStore('userAuth', {
       this.currentUser = user
     },
 
+    async initializeAuth() {
+      const auth = getAuth()
+      auth.onAuthStateChanged(async (firebaseUser) => {
+        this.currentUser = firebaseUser
+
+        const cartStore = useCartStore()
+
+        if (firebaseUser) {
+          this.currentUser = firebaseUser
+          try {
+            // ✅ 고객 프로필 정보
+            const customerRes = await createAuthService().getCustomerByUid(firebaseUser.uid)
+            const customer = customerRes.data as CustomerProfile
+            if (customer) {
+              this.customerProfile = customer
+            }
+
+          } catch (error) {
+            console.error('[userAuthStore] 초기화 실패:', error)
+            this.currentUser = null
+            this.customerProfile = null
+            this.customerCompanyActivity = null
+          }
+        } else {
+          this.currentUser = null
+          this.customerProfile = null
+          this.customerCompanyActivity = null
+          stopCompanyRealtimeWatcher()
+          // 🗑 장바구니 초기화
+          cartStore.clearCart()
+        }
+      })
+    },
+
     logout() {
       const auth = getAuth()
+      const cartStore = useCartStore()
+
       signOut(auth)
         .then(() => {
           console.log('[userAuthStore] Firebase 로그아웃 완료')
@@ -48,7 +86,9 @@ export const useUserAuthStore = defineStore('userAuth', {
       this.currentUser = null
       this.customerProfile = null
       this.customerCompanyActivity = null
-      console.log('[userAuthStore] 로그아웃 완료')
+      // 🗑 장바구니 초기화
+      cartStore.clearCart()
+      console.log('[userAuthStore] 로그아웃 완료 및 장바구니 초기화')
     },
   },
   persist: {

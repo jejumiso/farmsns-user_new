@@ -92,6 +92,6 @@ function remove(index: number) {
 
 function goToOrder() {
   document.body.style.overflow = ''
-  router.push(`/${route.params.companyId}/orders/checkout`)
+  router.push(`/${route.params.companyId}/order/checkout`)
 }
 </script>

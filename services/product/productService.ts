@@ -4,7 +4,7 @@ import { createDocumentService } from '@/services/common/documentService'
 
 type Mode = 'admin' | 'guest'
 
-export function createProductService(mode: Mode = 'guest') {
+export function createProductService(mode: 'admin'|'guest') {
   const documentService = createDocumentService<Product>('product', mode)
 
   return {

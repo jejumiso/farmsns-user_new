@@ -1,11 +1,11 @@
 export type TemplateResponse = {
     code: number;
     message: string;
-    list: Template[];
+    list: KakaoAlimTemplate[];
     info: Info;
 };
 
-export type Template = {
+export type KakaoAlimTemplate = {
     templtContent: string;
     templtName: string;
     templateType: string;
@@ -28,7 +28,7 @@ export type Template = {
     comments: Comment[];
 };
 // Template 타입의 기본값을 생성하는 함수
-export const createEmptyTemplate = (): Template => ({
+export const createEmptyTemplate = (): KakaoAlimTemplate => ({
     templtContent: '',
     templtName: '',
     templateType: '',

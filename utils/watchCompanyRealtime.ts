@@ -5,6 +5,7 @@ import { COLLECTION_PERMISSIONS } from '~/shared-constants/collections'
 import { versionWatchers, type VersionKey } from '@/constants/versionWatchers'
 import { loadVersionCache, saveVersionCache } from '@/utils/cache/versionCache'
 import { useNuxtApp } from '#app' // 👈 이거 추가
+
 let unsubscribeCompany: (() => void) | null = null
 
 export function stopCompanyRealtimeWatcher() {
@@ -34,6 +35,7 @@ export function watchCompanyRealtime(companyId: string) {
   unsubscribeCompany = onSnapshot(companyDocRef, async (snapshot) => {
     console.log('🔄 회사 정보 변경 감지')
     if (!snapshot.exists()) return
+    
 
     const company = snapshot.data()
 

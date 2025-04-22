@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
 import { useRouter } from 'vue-router'
+import { decryptWithIv } from '~/shared-utils/crypto/decryption'
 
 const authStore = useUserAuthStore()
 const router = useRouter()
@@ -14,13 +15,12 @@ const handleLogout = async () => {
 <template>
   <div class="p-6 max-w-md mx-auto space-y-4">
     <h1 class="text-xl font-bold text-center">마이페이지</h1>
-
     <div class="bg-white rounded-xl shadow p-4">
-        {{ authStore.customerProfile }}
-      <p><strong>이름:</strong> {{ authStore.customerProfile?.securedUserName || '알 수 없음' }}</p>
+      <p><strong>이름:</strong> {{ authStore.customerName || '알 수 없음' }}</p>
       <p><strong>전화번호:</strong> {{ authStore.customerProfile?.contactInfo.securedPhoneMain || '없음' }}</p>
       <p><strong>총 주문 수:</strong> {{ authStore.customerProfile?.orderTotalCount ?? 0 }}</p>
       <p><strong>등급:</strong> {{ authStore.customerProfile?.customerRating || '없음' }}</p>
+      <p><strong>보유머니:</strong> {{ authStore.customerCompanyActivity?.pointRemaining || '없음' }}</p>
     </div>
 
     <div class="text-center">

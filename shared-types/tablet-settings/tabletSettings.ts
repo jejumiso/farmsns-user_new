@@ -24,6 +24,6 @@ export function createEmptyTabletSettings(): TabletSettings {
     pendingRewardAmount: 0,
     rewardResetValue: 0,
 
-    dateCreated: null,
+    dateCreated: Timestamp.now(), // 현재 시간으로 초기화
   }
 }

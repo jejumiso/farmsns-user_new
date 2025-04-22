@@ -35,20 +35,20 @@ onMounted(async () => {
     const result = res.data
     // alert('로그인 결과: ' + JSON.stringify(result))
 
-    if (!result.isSuccess || !result.data?.customToken || !result.data?.customerProfile) {
+    if (!result.isSuccess || !result.data?.customToken ) {
       throw new Error(result.message || '로그인 실패')
     }
-    const authStore = useUserAuthStore()
+    // const authStore = useUserAuthStore()
     // 2. Firebase 로그인
     var user = await signInWithCustomToken($firebaseAuth, result.data.customToken)
-    authStore.setFirebaseUser(user.user)
+    // authStore.setFirebaseUser(user.user)
 
     // 3. 고객 정보 저장 (Pinia)
     
-    authStore.setUser({
-      customerProfile: result.data.customerProfile,
-      customerCompanyActivity: result.data.customerCompanyActivity ?? null,
-    })
+    // authStore.setUser({
+    //   customerProfile: result.data.customerProfile,
+    //   customerCompanyActivity: result.data.customerCompanyActivity ?? null,
+    // })
 
     if (result.data.customerCompanyActivity == null) {
       router.replace(`/`)
