@@ -122,6 +122,8 @@ export interface Company {
 
   searchField: string[] // 검색을 위한 키워드 (예: 전화번호 끝 4자리, 이메일 해시 등)
 
+  // 1스템프 대략적 가치
+  rewardStampValue : number
 
   // 메타
   dateCreated: Timestamp | null
@@ -227,6 +229,7 @@ export function createEmptyCompany(): Company {
     },
     searchField: [], // 검색을 위한 키워드 (예: 전화번호 끝 4자리, 이메일 해시 등)
 
+    rewardStampValue: 150,
 
     dateCreated: now,
     dateModified: now,

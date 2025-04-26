@@ -1,20 +1,19 @@
 <template>
-  <div class="min-h-screen flex flex-col bg-white">
-    <header class="flex items-center justify-between px-4 py-3 border-b shadow-sm sticky top-0 bg-white z-50">
-      <h1 class="text-base font-semibold">주문하기</h1>
+  <div class="p-6 max-w-md mx-auto space-y-4">
+    <header class="flex justify-between p-4 border-b shadow-sm bg-white sticky top-0 z-50">
+      <h1 class="font-bold text-lg">주문하기</h1>
       <button @click="close" class="text-gray-500 text-xl leading-none">×</button>
     </header>
 
-    <div class="flex-1 overflow-y-auto p-4 max-w-2xl mx-auto space-y-6">
+    <div class="flex-1 overflow-y-auto p-4 space-y-6">
 
-      <!-- ✅ 장바구니 + 결제 요약 -->
-      <div class="bg-gray-50 p-4 rounded-md mb-6">
-        <h2 class="font-semibold text-lg mb-3">🛒 주문 요약</h2>
-
-        <div v-for="item in cartItems" :key="item.id" class="flex justify-between py-2 border-b text-sm">
+      <!-- 🛒 장바구니 요약 -->
+      <div class="bg-gray-50 p-4 rounded-md">
+        <h2 class="font-semibold text-lg mb-4">🛒 주문 요약</h2>
+        <div v-for="item in cartItems" :key="item.id" class="flex justify-between border-b py-2 text-sm">
           <div>
-            <p class="font-medium">{{ item.productName }}</p>
-            <p v-if="item.options.length > 0" class="text-gray-500">
+            <p>{{ item.productName }}</p>
+            <p v-if="item.options.length" class="text-xs text-gray-500">
               {{ item.options.map(opt => opt.selectedValue).join(', ') }}
             </p>
           </div>
@@ -23,198 +22,138 @@
             <p>{{ (item.priceDiscounted * item.quantity).toLocaleString() }}원</p>
           </div>
         </div>
+        <div class="text-right mt-4 text-sm">
+          <p>총 상품금액: {{ cartTotal.toLocaleString() }}원</p>
+          <p>쿠폰 할인: -{{ couponDiscount.toLocaleString() }}원</p>
+          <p>포인트 사용: -{{ usedPoint.toLocaleString() }}원</p>
 
-        <div class="mt-4 text-right text-sm">
-          <p>상품 총액: {{ subtotalAfterFreeItem.toLocaleString() }} 원</p>
-          <p>쿠폰 할인: -{{ couponDiscount.toLocaleString() }} 원</p>
-          <p>포인트 사용: -{{ usedPoint.toLocaleString() }} 원</p>
+          <div class="mt-3 text-green-700">
+            <p>🎁 적립 예정 포인트: {{ rewardPointPlanned }}P</p>
+            <p>🎟️ 적립 예정 스탬프: {{ rewardStampPlanned }}개</p>
+          </div>
+
+          <div v-if="cartStore.items.some(item => item.rewardExcludedQuantity > 0)" class="mt-2 text-red-500 text-xs">
+            ※ 일부 상품은 할인 적용으로 리워드가 제외됩니다.
+          </div>
+
           <hr class="my-2" />
-          <p class="text-lg font-bold">결제할 금액: {{ finalAmount.toLocaleString() }} 원</p>
+          <p class="text-lg font-bold">최종 결제금액: {{ finalAmount.toLocaleString() }}원</p>
         </div>
+
       </div>
 
-      <!-- ✅ 주문 방식 -->
-      <div class="flex gap-2 justify-center">
-        <button
-          v-for="method in methods"
-          :key="method.value"
-          @click="selectMethod(method.value)"
-          :class="[
-            'px-4 py-2 rounded-md',
-            selectedMethod === method.value ? 'bg-green-600 text-white' : 'bg-gray-200 text-black'
-          ]"
-        >
-          {{ method.label }}
-        </button>
-      </div>
-
-      <!-- ✅ 포인트 사용 -->
-      <div>
-        <p class="font-medium">포인트</p>
-        <p>보유: {{ availablePoint.toLocaleString() }}P</p>
-        <input
-          type="number"
-          v-model.number="usedPoint"
-          class="border border-gray-300 px-3 py-2 w-full rounded-md mt-1"
-          :max="availablePoint"
-        />
-      </div>
-
-      <!-- ✅ 쿠폰 선택 -->
+      <!-- 🎟️ 쿠폰 선택 -->
       <div>
         <p class="font-medium">쿠폰 선택</p>
         <div v-for="coupon in coupons" :key="coupon.id" class="flex items-center gap-2">
           <input
             type="checkbox"
             :value="coupon.id"
-            v-model="selectedCouponIds"
-            :disabled="!canUseCoupon(coupon)"
+            :checked="selectedCouponIds.includes(coupon.id)"
+            @change="toggleCoupon(coupon.id)"
+            :disabled="!usableCouponIds.includes(coupon.id)"
           />
-          <label>
-            {{ coupon.couponName }}
-            <span v-if="!canUseCoupon(coupon)" class="text-red-500 text-sm">(사용 불가)</span>
-          </label>
+          <label>{{ coupon.couponName }}</label>
         </div>
       </div>
 
-      <!-- ✅ 결제 수단 -->
+      <!-- 💳 포인트 사용 -->
+      <div>
+        <p class="font-medium">포인트 사용</p>
+        <div class="flex items-center gap-2 mt-1">
+          <input
+            type="number"
+            v-model.number="usedPoint"
+            class="border px-3 py-2 flex-1 rounded-md"
+            :max="availablePoint"
+            :min="0"
+            @input="handlePointInput"
+            :readonly="useMaxPoint"
+          />
+          <div class="flex flex-col text-xs text-gray-500">
+            <p>보유: {{ availablePoint.toLocaleString() }}P</p>
+            <label class="flex items-center gap-1 mt-1">
+              <input type="checkbox" v-model="useMaxPoint" />
+              최대 사용
+            </label>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- 🏦 결제 수단 -->
       <div>
         <p class="font-medium">결제 수단</p>
         <div class="flex gap-3 flex-wrap">
-          <label v-for="method in paymentMethods" :key="method.value" class="flex items-center gap-2 cursor-pointer">
-            <input type="radio" :value="method.value" v-model="paymentMethod" />
+          <label v-for="method in paymentMethods" :key="method.value" class="flex items-center gap-2">
+            <input type="radio" v-model="paymentMethod" :value="method.value" />
             {{ method.label }}
           </label>
         </div>
       </div>
 
-      <button @click="placeOrder" class="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700">
-        주문하기
+      <button @click="placeOrder" class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 mt-4">
+        주문하기{{ optimizer.calculateSubtotalWithCoupons() }}
       </button>
-
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watchEffect, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCartStore } from '@/stores/cart/useCartStore'
 import { useCouponStore } from '@/stores/coupon/useCouponStore'
 import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
 import { useOrderViewStore } from '@/stores/view/order/useOrderViewStore'
+import { useCouponOptimizer } from '~/composables/coupon/useCouponOptimizer'
+import type { IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
 
 const router = useRouter()
 const cartStore = useCartStore()
 const couponStore = useCouponStore()
 const authStore = useUserAuthStore()
 const viewStore = useOrderViewStore()
+const optimizer = useCouponOptimizer()
 
 const cartItems = computed(() => cartStore.items)
+const cartTotal = computed(() => cartItems.value.reduce((sum, item) => sum + item.priceDiscounted * item.quantity, 0))
 
-const selectedMethod = ref(viewStore.selectedMethod)
+const availablePoint = ref(10000)
+
+
+const coupons = computed(() => couponStore.coupons)
+
+const selectedCouponIds = computed(() => optimizer.selectedCouponIds)
+const usableCouponIds = computed(() => optimizer.usableCouponIds)
+
 const usedPoint = ref(viewStore.usedPoint)
-const paymentMethod = ref(viewStore.paymentMethod as 'onsite' | 'card' | 'bank')
 
-const methods = [
-  { value: 'takeout', label: '포장' },
-  { value: 'dinein', label: '매장' },
-  { value: 'delivery', label: '배달' },
-] as const
+const couponDiscount = computed(() => {
+  const subtotalWithoutCoupons = cartTotal.value
+  const subtotalWithCoupons = optimizer.calculateSubtotalWithCoupons()
+  return subtotalWithoutCoupons - subtotalWithCoupons
+})
+
+const finalAmount = computed(() => {
+  return Math.max(0, cartTotal.value - couponDiscount.value - usedPoint.value)
+})
 
 const paymentMethods = [
   { value: 'onsite', label: '현장 결제' },
   { value: 'card', label: '카드 결제' },
   { value: 'bank', label: '무통장 입금' },
+  { value: 'naverpay', label: '네이버페이' },
+  { value: 'kakaopay', label: '카카오페이' },
+  { value: 'easy', label: '비밀번호 간편결제' },
 ] as const
 
-function selectMethod(method: typeof methods[number]['value']) {
-  selectedMethod.value = method
+const paymentMethod = ref(viewStore.paymentMethod)
+
+function toggleCoupon(couponId: string) {
+  optimizer.toggleCoupon(couponId)
 }
-
-const availablePoint = authStore.customerCompanyActivity?.pointRemaining ?? 0
-const coupons = computed(() => couponStore.coupons)
-const selectedCouponIds = ref<string[]>([])
-
-const appliedCoupons = computed(() => coupons.value.filter(c => selectedCouponIds.value.includes(c.id)))
-const applicableFreeItemProductIds = computed(() => appliedCoupons.value
-  .filter(c => c.type === 'freeItem')
-  .flatMap(c => c.availableProductIds ?? []))
-
-const cartItemsAfterFreeItem = computed(() => cartItems.value.map(item => {
-  if (applicableFreeItemProductIds.value.includes(item.productId)) {
-    return { ...item, priceDiscounted: 0 }
-  }
-  return item
-}))
-
-const subtotalAfterFreeItem = computed(() => cartItemsAfterFreeItem.value.reduce((sum, item) => sum + item.priceDiscounted * item.quantity, 0))
-
-const percentCoupons = computed(() => appliedCoupons.value.filter(c => c.type === 'percentDiscount'))
-const fixedCoupons = computed(() => appliedCoupons.value.filter(c => c.type === 'fixedAmountDiscount'))
-
-const couponDiscount = computed(() => {
-  let subtotal = subtotalAfterFreeItem.value
-  let discount = 0
-
-  for (const coupon of percentCoupons.value) {
-    if (coupon.availableProductIds && coupon.availableProductIds.length > 0) {
-      const eligibleItems = cartItemsAfterFreeItem.value.filter(item => coupon.availableProductIds?.includes(item.productId))
-      const eligibleSubtotal = eligibleItems.reduce((sum, item) => sum + item.priceDiscounted * item.quantity, 0)
-      discount += Math.floor(eligibleSubtotal * (coupon.discountRate / 100))
-    } else {
-      discount += Math.floor(subtotal * (coupon.discountRate / 100))
-    }
-  }
-
-  for (const coupon of fixedCoupons.value) {
-    discount += coupon.discountAmount
-  }
-
-  return Math.min(discount, subtotal)
-})
-
-const finalAmount = computed(() => {
-  const used = usedPoint.value
-  const subtotal = subtotalAfterFreeItem.value
-  const discount = couponDiscount.value
-  const afterCoupon = Math.max(0, subtotal - discount)
-  return Math.max(0, afterCoupon - used)
-})
-
-function canUseCoupon(coupon: any) {
-  // freeItem 쿠폰: 장바구니에 적용 상품이 있어야 가능
-  if (coupon.type === 'freeItem') {
-    return cartItems.value.some(item => coupon.availableProductIds?.includes(item.productId))
-  }
-
-  // percentDiscount, fixedAmountDiscount 쿠폰
-  if (coupon.type === 'percentDiscount' || coupon.type === 'fixedAmountDiscount') {
-    const availableProducts = coupon.availableProductIds ?? []
-
-    if (availableProducts.length === 0) {
-      // 모든 상품에 적용 가능
-      return true
-    }
-
-    // 특정 상품만 적용 가능
-    const hasEligibleProduct = cartItems.value.some(item =>
-      availableProducts.includes(item.productId)
-    )
-
-    if (coupon.type === 'percentDiscount') {
-      // 퍼센트 할인은 1장만 허용
-      const alreadySelectedPercent = appliedCoupons.value.some(c => c.type === 'percentDiscount')
-      return (!alreadySelectedPercent || selectedCouponIds.value.includes(coupon.id)) && hasEligibleProduct
-    }
-
-    return hasEligibleProduct
-  }
-
-  return true // 기본값
-}
-
-
 
 function placeOrder() {
   alert('✅ 주문 완료 (데모입니다)')
@@ -225,12 +164,41 @@ function close() {
 }
 
 onMounted(() => {
-  if (viewStore.scrollTop) {
-    window.scrollTo({ top: viewStore.scrollTop, behavior: 'auto' })
+  optimizer.availableCoupons = couponStore.coupons
+})
+// ✅ usedPoint 자동 조정
+const useMaxPoint = ref(false)
+
+watch(useMaxPoint, (checked) => {
+  if (checked) {
+    // 최대 사용 체크되면 결제금액이나 보유포인트 중 최소값 사용
+    usedPoint.value = Math.min(availablePoint.value, finalAmount.value+usedPoint.value)
+  }
+})
+watch([couponDiscount, usedPoint], () => {
+  const amountAfterCoupon = Math.max(0, cartTotal.value - couponDiscount.value)
+  if (usedPoint.value > amountAfterCoupon) {
+    usedPoint.value = amountAfterCoupon
   }
 })
 
-window.addEventListener('scroll', () => {
-  viewStore.scrollTop = window.scrollY
-})
+function handlePointInput() {
+  if (usedPoint.value > availablePoint.value) {
+    usedPoint.value = availablePoint.value
+  }
+  if (usedPoint.value < 0) {
+    usedPoint.value = 0
+  }
+}
+
+// 적립 예정 포인트/스탬프 (리워드 제외 수량 고려)
+const rewardPointPlanned = computed(() => 
+  cartStore.items.reduce((sum, item) =>
+    sum + (item.quantity - item.rewardExcludedQuantity) * item.rewardPoint, 0)
+)
+
+const rewardStampPlanned = computed(() =>
+  cartStore.items.reduce((sum, item) =>
+    sum + (item.quantity - item.rewardExcludedQuantity) * item.rewardStamp, 0)
+)
 </script>

@@ -1,69 +1,52 @@
-// packages/shared/services/company/companyService.ts
-import { useApi } from '@/composables/useApi'
-import type { ApiResponse } from '@/shared-types/apiResponse';
-import { createDocumentService } from '../common/documentService';
-import { COLLECTION_PERMISSIONS } from '~/shared-constants/collections';
-import type { Company } from '~/shared-types/company/company';
+// 📁 src/services/company/companyService.ts
+import type { Company } from '@/shared-types/company/company'
+import { createDocumentService } from '@/services/common/documentService'
+import type { ApiResponse } from '@/shared-types/apiResponse'
 
-
-
-
-
-export function createCompanyService() {
-  const documentService = createDocumentService<Company>('company')
+export function createCompanyService(mode: 'admin' | 'guest') {
+  const documentService = createDocumentService<Company>('company', mode)
 
   return {
     /**
-     * 전체 상품 조회
+     * 전체 회사 조회
      */
-    // async getAll(companyId: string) {
-    //     return  await documentService.getAll(companyId)
-
-    // },
+    async getAll() {
+      return await documentService.getAll('')
+    },
 
     /**
      * 수정된 회사만 조회 (since 기준)
      */
-    // async getModified(companyId: string, since: number) {
-    //     return  await documentService.getAll(companyId,since)
-
-    // },
+    async getModified(_: string, since: number) {
+      return await documentService.getAll('', since)
+    },
 
     /**
      * 단일 회사 조회
      */
-    async getById(companyId: string, itemId: string) {
-      return await documentService.getOne(companyId, itemId)
-
+    async getById(itemId: string) {
+      return await documentService.getOne('', itemId)
     },
 
     /**
      * 회사 저장 (단일)
      */
-    async save(companyId: string, company: Company) {
-      return await documentService.save(companyId, company)
+    async saveItem(company: Company) {
+      return await documentService.save('', company)
     },
 
     /**
-     * 상품 저장 (복수)
+     * 회사 저장 (복수)
      */
-    // async saveMany(companyId: string, products: Company[]) {
-    //   return await documentService.saveMany(companyId, products)
-    // },
+    async saveItems(companies: Company[]) {
+      return await documentService.saveMany('', companies)
+    },
 
     /**
-     * 상품 삭제
+     * 삭제된 회사 ID 목록 조회
      */
-    // async deleteItem(companyId: string, itemId: string) {
-    //   return await documentService.deleteItem(companyId, itemId)
-    // },
-
-    /**
-     * 상품 삭제 문서(단일문서임)
-     */
-    // ✅ 삭제된 상품 ID 목록 조회
-    // async getDeleted(companyId: string) {
-    //   return await documentService.getDeleted(companyId)
-    // },
+    async getDeleted(): Promise<ApiResponse<string[]>> {
+      return await documentService.getDeleted('')
+    },
   }
 }

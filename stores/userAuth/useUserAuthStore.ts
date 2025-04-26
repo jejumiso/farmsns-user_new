@@ -10,6 +10,7 @@ import { useCartStore } from '~/stores/cart/useCartStore'
 import { createCustomerProfileService } from '@/services/customer/customerProfileService'
 import { createTabletSettingsService } from '~/services/customer-company-activity/customerCompanyActivity'
 import { useCouponStore } from '../coupon/useCouponStore'
+import { useOrderViewStore } from '../view/order/useOrderViewStore'
 
 export const useUserAuthStore = defineStore('userAuth', {
   state: () => ({
@@ -92,6 +93,9 @@ export const useUserAuthStore = defineStore('userAuth', {
 
       const couponStore = useCouponStore()
       couponStore.clearCoupons()
+
+      const orderView = useOrderViewStore()
+      orderView.reset()
 
       signOut(auth)
         .then(() => console.log('[userAuthStore] Firebase 로그아웃 완료'))
