@@ -1,0 +1,16 @@
+// .vscode/settings.json (workspace)
+{
+    // 작업공간 TS를 쓰도록
+    "volar.useWorkspaceTsdk": true,
+    "typescript.enablePromptUseWorkspaceTsdk": true,
+  
+    // Takeover 모드(=Vue SFC와 TS 파일을 Volar가 한꺼번에 담당)
+    // Volar v2부터는 Hybrid 모드가 기본. 만약 여전히 takeover를 쓰려면:
+    "volar.takeOverMode.enabled": true,
+  
+    // .vue 파일을 'vue'로 인식
+    "files.associations": {
+      "*.vue": "vue"
+    }
+  }
+  

@@ -13,6 +13,7 @@ export interface DeliveryAddress {
   encryptedPhoneNumber: string // 암호화된 연락처
 
   geoPoint: GeoPoint // 좌표 정보
+  geoHash: string // 좌표 해시
 
   isDefault: boolean // 기본 배송지 여부
   postCode: string // 우편번호 (선택)
@@ -34,6 +35,7 @@ export function createEmptyDeliveryAddress(): DeliveryAddress {
     encryptedPhoneNumber: '',
 
     geoPoint: new GeoPoint(0, 0), // ✅ 수정된 부분
+    geoHash: '',
 
     isDefault: false,
     postCode: '',

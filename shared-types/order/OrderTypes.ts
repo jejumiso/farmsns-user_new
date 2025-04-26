@@ -5,8 +5,8 @@ export type CartModel = {
     id: string;
     couponUsage: { couponId: string; usedAmount: number }[]; // 사용된 쿠폰 ID와 금액
 
-    idUser: string;
-    idCompany: string;
+    uid: string;
+    companyId: string;
     status: string;
     orderNum: number; // 당일 주문 접수 순번
     completion: boolean; // 취소, 완료 처리 상태
