@@ -7,12 +7,15 @@ import { decryptWithIv } from '~/shared-utils/crypto/decryption'
 import { createAuthService } from '~/services/auth/authService'
 import { stopCompanyRealtimeWatcher } from '~/utils/watchCompanyRealtime'
 import { useCartStore } from '~/stores/cart/useCartStore'
+import { createCustomerProfileService } from '@/services/customer/customerProfileService'
+import { createTabletSettingsService } from '~/services/customer-company-activity/customerCompanyActivity'
+import { useCouponStore } from '../coupon/useCouponStore'
 
 export const useUserAuthStore = defineStore('userAuth', {
   state: () => ({
-    currentUser: null as User | null, // Firebase 인증 사용자
-    customerProfile: null as CustomerProfile | null, // 고객 기본 정보
-    customerCompanyActivity: null as CustomerCompanyActivity | null, // 고객의 매장 활동 정보
+    currentUser: null as User | null,
+    customerProfile: null as CustomerProfile | null,
+    customerCompanyActivity: null as CustomerCompanyActivity | null,
   }),
 
   getters: {
@@ -37,35 +40,47 @@ export const useUserAuthStore = defineStore('userAuth', {
       this.currentUser = user
     },
 
+    async syncCustomerProfile(uid: string) {
+      try {
+        const customerRes = await createCustomerProfileService('guest').getById('',uid)
+        const customer = customerRes.data as CustomerProfile
+        if (customer) {
+          this.customerProfile = customer
+        }
+      } catch (error) {
+        console.error('[userAuthStore] 고객 프로필 동기화 실패:', error)
+      }
+    },
+
+    async syncCustomerCompanyActivity(uid: string) {
+      try {
+        const activityRes = await createTabletSettingsService('guest').getById(uid)
+        const activity = activityRes.data as CustomerCompanyActivity
+        if (activity) {
+          this.customerCompanyActivity = activity
+        }
+      } catch (error) {
+        console.error('[userAuthStore] 고객 활동 정보 동기화 실패:', error)
+      }
+    },
+
     async initializeAuth() {
       const auth = getAuth()
       auth.onAuthStateChanged(async (firebaseUser) => {
         this.currentUser = firebaseUser
-
         const cartStore = useCartStore()
 
         if (firebaseUser) {
-          this.currentUser = firebaseUser
-          try {
-            // ✅ 고객 프로필 정보
-            const customerRes = await createAuthService().getCustomerByUid(firebaseUser.uid)
-            const customer = customerRes.data as CustomerProfile
-            if (customer) {
-              this.customerProfile = customer
-            }
-
-          } catch (error) {
-            console.error('[userAuthStore] 초기화 실패:', error)
-            this.currentUser = null
-            this.customerProfile = null
-            this.customerCompanyActivity = null
-          }
+          console.log('Firebase Auth 상태 변경:', firebaseUser)
+          const couponStore = useCouponStore()
+          await couponStore.fetchMyModifiedCoupons(firebaseUser.uid)
+          // await this.syncCustomerProfile(firebaseUser.uid)
+          // await this.syncCustomerCompanyActivity(firebaseUser.uid)
         } else {
           this.currentUser = null
           this.customerProfile = null
           this.customerCompanyActivity = null
           stopCompanyRealtimeWatcher()
-          // 🗑 장바구니 초기화
           cartStore.clearCart()
         }
       })
@@ -75,22 +90,21 @@ export const useUserAuthStore = defineStore('userAuth', {
       const auth = getAuth()
       const cartStore = useCartStore()
 
+      const couponStore = useCouponStore()
+      couponStore.clearCoupons()
+
       signOut(auth)
-        .then(() => {
-          console.log('[userAuthStore] Firebase 로그아웃 완료')
-        })
-        .catch((error) => {
-          console.error('[userAuthStore] Firebase 로그아웃 실패:', error)
-        })
+        .then(() => console.log('[userAuthStore] Firebase 로그아웃 완료'))
+        .catch((error) => console.error('[userAuthStore] Firebase 로그아웃 실패:', error))
 
       this.currentUser = null
       this.customerProfile = null
       this.customerCompanyActivity = null
-      // 🗑 장바구니 초기화
       cartStore.clearCart()
       console.log('[userAuthStore] 로그아웃 완료 및 장바구니 초기화')
     },
   },
+
   persist: {
     enabled: true,
     strategies: [

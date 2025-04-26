@@ -10,6 +10,8 @@ export interface CartItem {
   priceDiscounted: number
   quantity: number
   image: string
+  rewardStamp: number          // 추가됨 ✅
+  rewardPoint: number          // 추가됨 ✅
   options: {
     optionId: string
     optionName: string
@@ -44,6 +46,18 @@ export const useCartStore = defineStore('cart', {
         (sum, item) => sum + item.quantity * item.priceOriginal,
         0
       ),
+
+    totalRewardStamp: state => // ✅ 총 스탬프 계산 getter 추가
+      state.items.reduce(
+        (sum, item) => sum + item.quantity * item.rewardStamp,
+        0
+      ),
+
+    totalRewardPoint: state => // ✅ 총 포인트 계산 getter 추가
+      state.items.reduce(
+        (sum, item) => sum + item.quantity * item.rewardPoint,
+        0
+      ),
   },
 
   actions: {
@@ -68,6 +82,8 @@ export const useCartStore = defineStore('cart', {
           priceDiscounted: product.priceDiscounted,
           quantity,
           image: product.imageThumbnailFileName,
+          rewardStamp: product.rewardStamp,  // 추가됨 ✅
+          rewardPoint: product.rewardPoint,  // 추가됨 ✅
           options,
         }
 

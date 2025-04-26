@@ -3,6 +3,7 @@ import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
 import { useRouter } from 'vue-router'
 import { decryptWithIv } from '@/shared-utils/crypto/decryption';
 import { onMounted, ref, watch } from 'vue';
+import { useCouponStore } from '~/stores/coupon/useCouponStore';
 
 const authStore = useUserAuthStore()
 const router = useRouter()
@@ -26,7 +27,7 @@ watch(
   { immediate: true }
 )
 
-
+const couponStore = useCouponStore()
 
 const handleLogout = async () => {
   authStore.logout()
@@ -43,6 +44,7 @@ const handleLogout = async () => {
       <p><strong>총 주문 수:</strong> {{ authStore.customerProfile?.orderTotalCount ?? 0 }}</p>
       <p><strong>등급:</strong> {{ authStore.customerProfile?.customerRating || '없음' }}</p>
       <p><strong>보유머니:</strong> {{ authStore.customerCompanyActivity?.pointRemaining || '없음' }}</p>
+      <p><strong>보유쿠폰수:</strong> {{ couponStore.coupons.length || '없음' }}</p>
     </div>
 
     <div class="text-center">

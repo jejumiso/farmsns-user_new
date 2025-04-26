@@ -38,6 +38,12 @@
                 </div>
                 <button @click="remove(index)" class="text-red-500 text-sm">삭제</button>
               </div>
+
+              <!-- ✅ 리워드 스탬프, 포인트 표시 -->
+              <div class="mt-2 text-xs text-blue-600">
+                <span v-if="item.rewardStamp > 0">🟠 구매 시 {{ item.rewardStamp }} 스탬프 제공</span>
+                <span v-if="item.rewardPoint > 0" class="ml-2">💎 구매 시 {{ item.rewardPoint }} 포인트 제공</span>
+              </div>
             </div>
           </div>
         </div>
@@ -54,6 +60,12 @@
           @click="goToOrder"
         >
           주문하기
+        </button>
+        <button
+          class="w-full py-3 bg-gray-200 text-gray-700 rounded shadow hover:bg-gray-300"
+          @click="closeModal"
+        >
+          상품 더 고르기
         </button>
       </div>
     </div>

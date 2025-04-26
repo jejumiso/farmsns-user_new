@@ -235,8 +235,8 @@ onMounted(() => {
   console.log('프로필 로그 확인', JSON.stringify(authStore.customerProfile))
 })
 
-import { saveCustomerProfile } from '@/services/customer/customerProfileService'
 import { useRoute } from 'vue-router'
+import { createCustomerProfileService } from '@/services/customer/customerProfileService'
 
 const route = useRoute()
 const companyId = computed(() =>
@@ -254,7 +254,7 @@ async function saveToServer() {
   authStore.customerProfile.defaultDeliveryAddressId = defaultAddressId.value??''
   alert(JSON.stringify(authStore.customerProfile.deliveryAddressList))
 
-  const res = await saveCustomerProfile(authStore.customerProfile, '')
+  const res = await createCustomerProfileService('guest').saveItem('',authStore.customerProfile)
   if (res.isSuccess) {
     console.log('✅ 저장 성공')
   } else {
