@@ -6,7 +6,9 @@ export const useCouponStore = defineStore('couponStore', {
   state: () => ({
     coupons: [] as IssuedCoupon[],
     loading: false,
-    lastFetchedAt: 0 as number, // 마지막 가져온 시간 (timestamp)
+    lastFetchedAt: null as number | null, // 마지막 가져온 시간 (timestamp)
+    errorMessage: '' as string, // state 추가
+
   }),
 
   getters: {
@@ -47,6 +49,7 @@ export const useCouponStore = defineStore('couponStore', {
         this.lastFetchedAt = Date.now()
       } catch (error) {
         console.error('[fetchMyModifiedCoupons] 쿠폰 가져오기 실패:', error)
+        this.errorMessage = '쿠폰 가져오기 실패: ' + error
       } finally {
         this.loading = false
       }
@@ -54,16 +57,27 @@ export const useCouponStore = defineStore('couponStore', {
     
 
     mergeCoupons(updatedCoupons: IssuedCoupon[]) {
-      const map = new Map(this.coupons.map(coupon => [coupon.id, coupon]))
-      for (const updated of updatedCoupons) {
-        map.set(updated.id, updated)
-      }
-      this.coupons = Array.from(map.values())
+      const updatedMap = new Map<string, IssuedCoupon>();
+
+    
+      // 기존 쿠폰 배열에서 ID를 기준으로 업데이트된 쿠폰만 넣기
+      updatedCoupons.forEach(coupon => {
+        updatedMap.set(coupon.id, coupon);
+      });
+    
+      // 기존 coupons 배열에서 ID를 기준으로 최신 쿠폰으로 병합
+      this.coupons.forEach(coupon => {
+        updatedMap.set(coupon.id, coupon);
+      });
+    
+      // 업데이트된 쿠폰만 포함된 배열로 설정
+      this.coupons = Array.from(updatedMap.values());
     },
+    
 
     clearCoupons() {
       this.coupons = []
-      this.lastFetchedAt = 0
+      this.lastFetchedAt = null;
     },
   },
 

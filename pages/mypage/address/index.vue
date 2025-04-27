@@ -90,36 +90,31 @@
         배송지는 최대 5개까지만 등록할 수 있습니다.
       </p>
     </div>
-      <!-- 하단 고정 확인 버튼 -->
-  <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-md">
-    <button
-      @click="handleClose"
-      class="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700"
-    >
-      확인
-    </button>
-  </div>
-  </div>
 
-
+    <!-- 하단 고정 확인 버튼 -->
+    <div class="fixed bottom-0 left-0 right-0 p-4 bg-white border-t shadow-md">
+      <button
+        @click="handleClose"
+        class="w-full py-3 bg-green-600 text-white rounded-md hover:bg-green-700"
+      >
+        확인
+      </button>
+    </div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
-import { GeoPoint } from '@/shared/firebase/firebaseTypes'
-import type { DeliveryAddress } from '@/shared-types/delivery-address/deliveryAddress'
-import geohash from 'ngeohash'
 import { onBeforeRouteLeave } from 'vue-router'
+import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
+import type { DeliveryAddress } from '@/shared-types/delivery-address/deliveryAddress'
+import { GeoPoint } from '@/shared/firebase/firebaseTypes'
+import geohash from 'ngeohash'
+import { createCustomerProfileService } from '@/services/customer/customerProfileService'
+
 const router = useRouter()
 const authStore = useUserAuthStore()
-
-const addressList = ref<DeliveryAddress[]>(authStore.customerProfile?.deliveryAddressList || [])
-const defaultAddressId = ref(authStore.customerProfile?.defaultDeliveryAddressId ?? null)
-const selectedAddress = ref<DeliveryAddress | null>(
-  addressList.value.find(a => a.id === defaultAddressId.value) || addressList.value[0] || null
-)
 
 const isSearching = ref(false)
 const searchQuery = ref('')
@@ -127,48 +122,35 @@ const searchResults = ref<DeliveryAddress[]>([])
 const selectedSearchResult = ref<DeliveryAddress | null>(null)
 const detailAddress = ref('')
 
+const addressList = computed<DeliveryAddress[]>(() =>
+  authStore.customerProfile?.deliveryAddressList ?? []
+)
+const defaultAddressId = computed<string | null>(() =>
+  authStore.customerProfile?.defaultDeliveryAddressId ?? null
+)
+const selectedAddress = computed<DeliveryAddress | null>(() => {
+  const list = addressList.value
+  const defId = defaultAddressId.value
+  if (!list.length) return null
+  return list.find(a => a.id === defId) ?? list[0]
+})
+
 function close() {
   router.back()
 }
 
-function selectAddress(address: DeliveryAddress) {
-  selectedAddress.value = address
+function selectSearchResult(result: DeliveryAddress) {
+  selectedSearchResult.value = result
 }
-
-function setAsDefault(addressId: string) {
-  defaultAddressId.value = addressId
-  authStore.customerProfile!.defaultDeliveryAddressId = addressId
-  // TODO: 서버에도 반영 필요
-}
-
-function deleteAddress(addressId: string) {
-  addressList.value = addressList.value.filter(addr => addr.id !== addressId)
-  if (selectedAddress.value?.id === addressId) {
-    selectedAddress.value = addressList.value[0] || null
-  }
-  if (defaultAddressId.value === addressId) {
-    defaultAddressId.value = addressList.value[0]?.id ?? null
-    authStore.customerProfile!.defaultDeliveryAddressId = defaultAddressId.value
-  }
-  // TODO: 서버에도 반영 필요
-}
-
-const KAKAOAPIKEY = '93afc1e69ae0f7fec47aa2d7c07f8a40';
 
 async function searchAddress() {
   if (!searchQuery.value.trim()) return
-
   const query = encodeURIComponent(searchQuery.value.trim())
   const url = `https://dapi.kakao.com/v2/local/search/address.json?query=${query}`
-
-  const response = await fetch(url, {
-    headers: {
-      Authorization: `KakaoAK ${KAKAOAPIKEY}`, // 또는 환경변수
-    },
+  const res = await fetch(url, {
+    headers: { Authorization: `KakaoAK ${KAKAOAPIKEY}` }
   })
-
-  const data = await response.json()
-
+  const data = await res.json()
   searchResults.value = data.documents.map((doc: any) => ({
     id: doc.address_name,
     label: doc.road_address?.building_name || doc.address_name.split(' ')[0],
@@ -177,95 +159,68 @@ async function searchAddress() {
     encryptedRecipientName: '',
     encryptedPhoneNumber: '',
     geoPoint: new GeoPoint(parseFloat(doc.y), parseFloat(doc.x)),
-    isDefault: false,
     postCode: doc.road_address?.zone_no || '',
     requestShop: '',
   }))
-
- 
-}
-
-
-function selectSearchResult(result: DeliveryAddress) {
-  selectedSearchResult.value = result
-  
 }
 
 function registerAddress() {
   if (!selectedSearchResult.value || !detailAddress.value) return
-
-  const newAddress: DeliveryAddress = {
-    ...selectedSearchResult.value,
+  const base = selectedSearchResult.value
+  const newAddr: DeliveryAddress = {
+    ...base,
     id: `addr_${Date.now()}`,
-    label: selectedSearchResult.value.label || '신규',
     encryptedDetailAddress: detailAddress.value,
-    encryptedRecipientName: '',
-    encryptedPhoneNumber: '',
-    isDefault: false,
-    requestShop: '',
-    geoHash: geohash.encode(selectedSearchResult.value.geoPoint.latitude, selectedSearchResult.value.geoPoint.longitude)
+    geoHash: geohash.encode(base.geoPoint.latitude, base.geoPoint.longitude)
   }
-
-
-  addressList.value.push(newAddress)
-  if(addressList.value.length === 1) {
-    defaultAddressId.value = addressList.value[0].id
-  } 
-  selectedAddress.value = newAddress
+  authStore.customerProfile!.deliveryAddressList.push(newAddr)
+  if (authStore.customerProfile!.deliveryAddressList.length === 1) {
+    authStore.customerProfile!.defaultDeliveryAddressId = newAddr.id
+  }
   selectedSearchResult.value = null
   detailAddress.value = ''
   isSearching.value = false
-
-  console.log('배송지 검색 추가 후 로그 확인 : ', JSON.stringify(authStore.customerProfile))
-  
 }
 
-
-
-onBeforeRouteLeave((_to, _from, next) => {
-  saveToServer()
-  next()
-})
-
-function handleClose() {
-  saveToServer()
-  router.back()
+function selectAddress(addr: DeliveryAddress) {
+  authStore.customerProfile!.defaultDeliveryAddressId = addr.id
 }
-onMounted(() => {
-  console.log('프로필 로그 확인', JSON.stringify(authStore.customerProfile))
-})
 
-import { useRoute } from 'vue-router'
-import { createCustomerProfileService } from '@/services/customer/customerProfileService'
+function setAsDefault(id: string) {
+  authStore.customerProfile!.defaultDeliveryAddressId = id
+}
 
-const route = useRoute()
-const companyId = computed(() =>
-  route.params.companyId as string || authStore.customerProfile?.companyIds?.[0] || ''
-)
+function deleteAddress(id: string) {
+  authStore.customerProfile!.deliveryAddressList =
+    authStore.customerProfile!.deliveryAddressList.filter(a => a.id !== id)
+  if (defaultAddressId.value === id) {
+    authStore.customerProfile!.defaultDeliveryAddressId =
+      addressList.value[0]?.id ?? null
+  }
+}
 
 let isSaving = false
-
 async function saveToServer() {
-  if (isSaving || !authStore.customerProfile) return
+  if (isSaving) return
   isSaving = true
-
-  // 👉 변경된 addressList를 실제 profile에 반영
-  authStore.customerProfile.deliveryAddressList = addressList.value
-  authStore.customerProfile.defaultDeliveryAddressId = defaultAddressId.value??''
-  alert(JSON.stringify(authStore.customerProfile.deliveryAddressList))
-
-  const res = await createCustomerProfileService('guest').saveItem('',authStore.customerProfile)
-  if (res.isSuccess) {
-    console.log('✅ 저장 성공')
-  } else {
-    console.error('❌ 저장 실패', res.message)
-  }
-
+  await createCustomerProfileService('guest').saveItem(
+    '',
+    authStore.customerProfile!
+  )
   isSaving = false
 }
 
+onBeforeRouteLeave((_, __, next) => {
+  saveToServer().finally(next)
+})
+
+function handleClose() {
+  saveToServer().then(() => router.back())
+}
+
+const KAKAOAPIKEY = '93afc1e69ae0f7fec47aa2d7c07f8a40'
 </script>
 
 <style scoped>
-/* 추가적인 스타일이 필요하면 여기에 작성하세요 */
+/* 추가 스타일 필요 시 여기에 */
 </style>

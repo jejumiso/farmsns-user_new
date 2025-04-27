@@ -29,18 +29,38 @@ export const useCartStore = defineStore('cart', {
   persist: true,
 
   getters: {
-    totalQuantity: (state) => state.items.reduce((sum, item) => sum + item.quantity, 0),
-    totalFinalPrice: (state) => state.items.reduce((sum, item) =>
-      sum + item.quantity * (item.priceDiscounted + item.options.reduce((oSum, o) => oSum + o.price, 0)),
-    0),
-    totalOriginalPrice: (state) => state.items.reduce((sum, item) =>
-      sum + item.quantity * item.priceOriginal,
-    0),
+    // 쿠폰·포인트 적용 전 장바구니 총액 (할인가 × 수량)
+    cartTotal: (state) =>
+      state.items.reduce((sum, item) => sum + item.priceDiscounted * item.quantity, 0),
   
-    // 🎯 추가하는 부분
-    totalRewardPoint: (state) => state.items.reduce((sum, item) => sum + item.rewardPoint * item.quantity, 0),
-    totalRewardStamp: (state) => state.items.reduce((sum, item) => sum + item.rewardStamp * item.quantity, 0),
+    // 전체 상품 수량
+    totalQuantity: (state) =>
+      state.items.reduce((sum, item) => sum + item.quantity, 0),
+  
+    // 옵션 포함 결제 최종 금액 (할인가 + 옵션가) × 수량
+    totalFinalPrice: (state) =>
+      state.items.reduce(
+        (sum, item) =>
+          sum +
+          item.quantity *
+            (item.priceDiscounted +
+              item.options.reduce((oSum, o) => oSum + o.price, 0)),
+        0
+      ),
+  
+    // 전체 원가 (원가 × 수량)
+    totalOriginalPrice: (state) =>
+      state.items.reduce((sum, item) => sum + item.quantity * item.priceOriginal, 0),
+  
+    // 적립 예정 포인트 합계
+    totalRewardPoint: (state) =>
+      state.items.reduce((sum, item) => sum + item.rewardPoint * item.quantity, 0),
+  
+    // 적립 예정 스탬프 합계
+    totalRewardStamp: (state) =>
+      state.items.reduce((sum, item) => sum + item.rewardStamp * item.quantity, 0),
   },
+  
   
 
   actions: {
@@ -80,55 +100,59 @@ export const useCartStore = defineStore('cart', {
       if (newQty < 1) return
       this.items[index].quantity = newQty
     },
-    applyRewardExclusion(selectedCouponIds: string[], availableCoupons: IssuedCoupon[]) {
+    applyRewardExclusion(selectedCouponIds: IssuedCoupon[]) {
       // 초기화
       this.items.forEach(item => {
-        item.rewardExcludedQuantity = 0
-      })
-  
+        item.rewardExcludedQuantity = 0;
+      });
+    
+      // 퍼센트 할인쿠폰이 하나라도 선택되었으면 전체 리워드 제외
       const percentCouponSelected = selectedCouponIds
-        .map(id => availableCoupons.find(c => c.id === id))
-        .some(coupon => coupon?.type === 'percentDiscount')
-  
+        .some(coupon => coupon.type === 'percentDiscount');
+    
       if (percentCouponSelected) {
         // 퍼센트 할인쿠폰이 하나라도 선택되었으면 전체 리워드 제외
         this.items.forEach(item => {
-          item.rewardExcludedQuantity = item.quantity
-        })
-        return
+          item.rewardExcludedQuantity = item.quantity;
+        });
+        return;
       }
-  
-      // 퍼센트 쿠폰이 없으면 금액 할인 처리
-      const fixedCoupons = selectedCouponIds
-        .map(id => availableCoupons.find(c => c.id === id))
-        .filter((c): c is FixedAmountIssuedCoupon => !!c && c.type === 'fixedAmountDiscount')
-  
-      let totalFixedDiscount = fixedCoupons.reduce((sum, coupon) => sum + coupon.discountAmount, 0)
-  
+    
+      // 금액 할인쿠폰만 필터링
+      const fixedCoupons = selectedCouponIds.filter(
+        (coupon): coupon is FixedAmountIssuedCoupon => coupon.type === 'fixedAmountDiscount'
+      );
+    
+      let totalFixedDiscount = fixedCoupons.reduce((sum, coupon) => sum + coupon.discountAmount, 0);
+    
       // 비싼 상품부터 정렬
       const sortedItems = [...this.items].sort((a, b) => {
-        const aPrice = a.priceDiscounted + a.options.reduce((oSum, o) => oSum + o.price, 0)
-        const bPrice = b.priceDiscounted + b.options.reduce((oSum, o) => oSum + o.price, 0)
-        return bPrice - aPrice
-      })
-  
+        const aPrice = a.priceDiscounted + a.options.reduce((oSum, o) => oSum + o.price, 0);
+        const bPrice = b.priceDiscounted + b.options.reduce((oSum, o) => oSum + o.price, 0);
+        return bPrice - aPrice;
+      });
+    
+      // 리워드 제외 수량 적용
       for (const item of sortedItems) {
-        const unitPrice = item.priceDiscounted + item.options.reduce((oSum, o) => oSum + o.price, 0)
+        const unitPrice = item.priceDiscounted + item.options.reduce((oSum, o) => oSum + o.price, 0);
         for (let i = 0; i < item.quantity; i++) {
           if (totalFixedDiscount >= unitPrice) {
-            item.rewardExcludedQuantity += 1
-            totalFixedDiscount -= unitPrice
+            item.rewardExcludedQuantity += 1;
+            totalFixedDiscount -= unitPrice;
           } else if (totalFixedDiscount > 0) {
-            item.rewardExcludedQuantity += 1
-            totalFixedDiscount = 0
-            break
+            item.rewardExcludedQuantity += 1;
+            totalFixedDiscount = 0;
+            break;
           } else {
-            break
+            break;
           }
         }
-        if (totalFixedDiscount <= 0) break
+        if (totalFixedDiscount <= 0) break;
       }
-    },
+    }
+    
+
+        
   
   },
 })

@@ -33,12 +33,14 @@ onMounted(async () => {
   }
 
   const cred = await signInWithCustomToken($firebaseAuth, res.data.customToken)
-  const authStore = useUserAuthStore()
-  authStore.setFirebaseUser(cred.user)
-  authStore.setUser({
-    customerProfile: res.data.customerProfile,
-    customerCompanyActivity: res.data.customerCompanyActivity,
-  })
+  // const authStore = useUserAuthStore()
+  //onAuthStateChanged 에서 처리해야함..서버의 signInWithCustomToken에서도 간단하게 변경할것..
+  //
+  // authStore.setFirebaseUser(cred.user)
+  // authStore.setUser({
+  //   customerProfile: res.data.customerProfile,
+  //   customerCompanyActivity: res.data.customerCompanyActivity,
+  // })
 
   const target = res.data.customerCompanyActivity
     ? `/${res.data.companyId}/products`

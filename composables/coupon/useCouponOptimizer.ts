@@ -1,125 +1,89 @@
 import { defineStore } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useCartStore } from '@/stores/cart/useCartStore'
-import type { IssuedCoupon, PercentIssuedCoupon, FixedAmountIssuedCoupon } from '@/shared-types/coupon/issuedCoupon'
+import { useCouponStore } from '@/stores/coupon/useCouponStore'
+import { useOrderViewStore } from '@/stores/view/order/useOrderViewStore'
+import type {
+  IssuedCoupon,
+  PercentIssuedCoupon,
+  FixedAmountIssuedCoupon
+} from '@/shared-types/coupon/issuedCoupon'
 
 export const useCouponOptimizer = defineStore('couponOptimizer', () => {
+  const couponStore = useCouponStore() // 쿠폰 스토어 사용
   const cartStore = useCartStore()
-  const selectedCouponIds = ref<string[]>([])
-  const availableCoupons = ref<IssuedCoupon[]>([])
+  const orderViewStore = useOrderViewStore() 
 
-  const cartTotal = computed(() =>
-    cartStore.items.reduce((sum, item) => sum + item.priceDiscounted * item.quantity, 0)
-  )
+  const selectedCoupons = computed(() => orderViewStore.selectedCoupons)
 
-  function calculateSubtotalWithCoupons(customSelectedCouponIds?: string[]) {
-    let subtotal = cartTotal.value
-    const selected = (customSelectedCouponIds ?? selectedCouponIds.value)
-      .map(id => availableCoupons.value.find(c => c.id === id))
-      .filter(Boolean) as IssuedCoupon[]
+  // 고객이 보유한 쿠폰
+  const availableCoupons = computed(() => couponStore.availableCoupons)
 
-    // 퍼센트 할인 먼저 적용
-    const percentCoupons = selected.filter(c => c.type === 'percentDiscount') as PercentIssuedCoupon[]
-    if (percentCoupons.length) {
-      const bestPercentCoupon = percentCoupons.sort((a, b) => b.discountRate - a.discountRate)[0]
-      subtotal = Math.floor(subtotal * (1 - bestPercentCoupon.discountRate / 100))
-    }
+  const cartTotal = computed(() => cartStore.cartTotal)
 
-    // 금액 할인 적용
-    const fixedCoupons = selected.filter(c => c.type === 'fixedAmountDiscount') as FixedAmountIssuedCoupon[]
-    for (const coupon of fixedCoupons) {
-      subtotal = Math.max(0, subtotal - coupon.discountAmount)
-    }
-
-    return subtotal
+  // 장바구니 총액에서 쿠폰 할인 금액을 뺀 최종 금액 계산
+  const calculateTotalWithCoupons  = (coupons: IssuedCoupon[]) => {
+    const discount = calculateCouponDiscount(coupons); // 할인 금액 계산
+    const subtotal = cartTotal.value - discount;
+    return subtotal;
   }
 
-  function canUseCoupon(coupon: IssuedCoupon) {
-    const selectedCoupons = selectedCouponIds.value.map(id => availableCoupons.value.find(c => c.id === id)).filter(Boolean) as IssuedCoupon[]
-    const hasPercentCouponSelected = selectedCoupons.some(c => c.type === 'percentDiscount')
-    const subtotalWithoutThisCoupon = calculateSubtotalWithCoupons()
-  
-    const isAlreadySelected = selectedCouponIds.value.includes(coupon.id)
-  
-    if (isAlreadySelected) {
-      return true
+  // 실제 선택된 쿠폰으로 할인 금액 계산
+  const calculateCouponDiscountForSelected = () => {
+    return calculateCouponDiscount(selectedCoupons.value); // 선택된 쿠폰으로 할인 금액 계산
+  }
+
+  // 주어진 쿠폰 배열로 할인 금액 계산 (외부에서 제공되는 배열)
+  const calculateCouponDiscount = (coupons: IssuedCoupon[]) => {
+    let discountAmount = 0;
+    
+    // % 할인 쿠폰 처리
+    const percentCoupons = coupons.filter(
+      (coupon): coupon is PercentIssuedCoupon => coupon.type === 'percentDiscount'
+    );
+    if (percentCoupons.length > 0) {
+      const bestCoupon = percentCoupons.reduce((a, b) =>
+        a.discountRate > b.discountRate ? a : b
+      );
+      discountAmount += (cartTotal.value * bestCoupon.discountRate) / 100;
     }
   
-    if (subtotalWithoutThisCoupon <= 0) {
+    // 고정 금액 할인 쿠폰 처리
+    const fixedCoupons = coupons.filter(
+      (coupon): coupon is FixedAmountIssuedCoupon => coupon.type === 'fixedAmountDiscount'
+    );
+    fixedCoupons.forEach(coupon => {
+      discountAmount += coupon.discountAmount;
+    });
+  
+    return discountAmount;
+  }
+
+  function canUseCoupon(coupon: IssuedCoupon): boolean {
+    // 이미 골라진 쿠폰은 항상 '취소' 용도로 활성화
+    if (selectedCoupons.value.some(c => c.id === coupon.id)) return true
+  
+    // %쿠폰은 한번만 선택 가능
+    if (
+      coupon.type === 'percentDiscount' &&
+      selectedCoupons.value.some(c => c.type === 'percentDiscount')
+    ) {
       return false
     }
   
-    if (coupon.type === 'percentDiscount') {
-      if (hasPercentCouponSelected) {
-        return false
-      }
-    
-      const originalSubtotal = cartTotal.value // 쿠폰 적용 전 전체 상품 합계
-    
-      // 퍼센트 할인 금액 계산
-      const discountAmount = originalSubtotal * (coupon.discountRate / 100)
-      const subtotalAfterPercent = originalSubtotal - discountAmount
-    
-      // 현재 선택된 금액 할인권들 적용
-      const fixedAmountCoupons = selectedCouponIds.value
-        .map(id => availableCoupons.value.find(c => c.id === id))
-        .filter((c): c is FixedAmountIssuedCoupon => !!c && c.type === 'fixedAmountDiscount')
-    
-      let finalSubtotal = subtotalAfterPercent
-      for (const fixedCoupon of fixedAmountCoupons) {
-        finalSubtotal -= fixedCoupon.discountAmount
-      }
-    
-      // 최종 결제금액이 0 이상이어야 퍼센트 쿠폰 선택 가능
-      return finalSubtotal >= 0
-    }
-    
-    
-    
-    
-  
-    if (coupon.type === 'fixedAmountDiscount') {
-      if (coupon.discountAmount > subtotalWithoutThisCoupon) {
-        return false
-      }
-      return true
-    }
-  
-    return true
-  }
-  
-  
-  
-  
-
-  const usableCouponIds = computed(() => {
-    return availableCoupons.value
-      .filter(coupon => canUseCoupon(coupon))
-      .map(coupon => coupon.id)
-  })
-
-  function toggleCoupon(couponId: string) {
-    const index = selectedCouponIds.value.indexOf(couponId)
-    if (index === -1) {
-      selectedCouponIds.value.push(couponId)
-    } else {
-      selectedCouponIds.value.splice(index, 1)
-    }
-    // ✅ 쿠폰 토글할 때마다 리워드 제외 계산 적용
-    cartStore.applyRewardExclusion(selectedCouponIds.value, availableCoupons.value)
+    // 실제로 이 쿠폰을 추가했을 때 최종 합계가 0 이상인지 계산
+    const newSelectedCoupons = [...selectedCoupons.value, coupon]; // 추가된 상태의 쿠폰 배열
+    const newTotal = calculateTotalWithCoupons (newSelectedCoupons); // 새로운 배열로 최종 금액 계산
+    return newTotal >= 0;
   }
 
-  function reset() {
-    selectedCouponIds.value = []
-  }
+  // 사용 가능한 쿠폰 목록
+  const usableCoupons = computed(() =>
+    availableCoupons.value.filter(canUseCoupon)  // canUseCoupon을 사용해 필터링
+  )
 
   return {
-    availableCoupons,
-    selectedCouponIds,
-    usableCouponIds,
-    toggleCoupon,
-    reset,
-    calculateSubtotalWithCoupons,
-    canUseCoupon,
+    calculateCouponDiscountForSelected, // 선택된 쿠폰으로 할인 계산
+    usableCoupons,
   }
 })

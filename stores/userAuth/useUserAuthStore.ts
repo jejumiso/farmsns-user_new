@@ -75,8 +75,8 @@ export const useUserAuthStore = defineStore('userAuth', {
           console.log('Firebase Auth 상태 변경:', firebaseUser)
           const couponStore = useCouponStore()
           await couponStore.fetchMyModifiedCoupons(firebaseUser.uid)
-          // await this.syncCustomerProfile(firebaseUser.uid)
-          // await this.syncCustomerCompanyActivity(firebaseUser.uid)
+          await this.syncCustomerProfile(firebaseUser.uid)
+          await this.syncCustomerCompanyActivity(firebaseUser.uid)
         } else {
           this.currentUser = null
           this.customerProfile = null
