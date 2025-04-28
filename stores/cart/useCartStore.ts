@@ -2,29 +2,14 @@
 import { defineStore } from 'pinia'
 import type { Product } from '@/shared-types/product/product'
 import type { FixedAmountIssuedCoupon, IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
+import type { CartItem } from '~/shared-types/cart/cartItem'
 
-export interface CartItem {
-  id: number
-  productId: string
-  productName: string
-  priceOriginal: number
-  priceDiscounted: number
-  quantity: number
-  image: string
-  rewardStamp: number
-  rewardPoint: number
-  rewardExcludedQuantity: number // ✅ 추가
-  options: {
-    optionId: string
-    optionName: string
-    selectedValue: string
-    price: number
-  }[]
-}
+
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
     items: [] as CartItem[],
+
   }),
   persist: true,
 
@@ -149,7 +134,25 @@ export const useCartStore = defineStore('cart', {
         }
         if (totalFixedDiscount <= 0) break;
       }
-    }
+    },
+    // setDeliveryFee(fee: number) {
+    //   this.deliveryFee = fee;  // 배달비 설정
+    // },
+    // // 추가: 배송비 계산 메소드
+    // calculateDeliveryFee(distance: number, deliveryFee: DeliveryFee): number {
+    //   // 기본 거리 이내는 기본 배송비만 적용
+    //   if (distance <= deliveryFee.baseDistance) {
+    //     return deliveryFee.baseFee;
+    //   }
+
+    //   // 기본 거리 이후 추가 요금 계산
+    //   const extraDistance = Math.ceil((distance - deliveryFee.baseDistance) / deliveryFee.additionalDistance);
+    //   const extraFee = extraDistance * deliveryFee.additionalFee;
+
+    //   // 총 배송비 계산
+    //   return deliveryFee.baseFee + extraFee;
+    // },
+
     
 
         

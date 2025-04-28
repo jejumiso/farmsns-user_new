@@ -2,19 +2,20 @@ import { defineStore } from 'pinia'
 import { computed } from 'vue'
 import { useCartStore } from '@/stores/cart/useCartStore'
 import { useCouponStore } from '@/stores/coupon/useCouponStore'
-import { useOrderViewStore } from '@/stores/view/order/useOrderViewStore'
+// import { useOrderViewStore } from '@/stores/view/order/useOrderViewStore'
 import type {
   IssuedCoupon,
   PercentIssuedCoupon,
   FixedAmountIssuedCoupon
 } from '@/shared-types/coupon/issuedCoupon'
+import { useOrderSummaryStore } from '~/stores/order/useOrderSummaryStore'
 
 export const useCouponOptimizer = defineStore('couponOptimizer', () => {
   const couponStore = useCouponStore() // 쿠폰 스토어 사용
   const cartStore = useCartStore()
-  const orderViewStore = useOrderViewStore() 
-
-  const selectedCoupons = computed(() => orderViewStore.selectedCoupons)
+  // const orderViewStore = useOrderViewStore() 
+  const orderSummaryStore = useOrderSummaryStore()
+  const selectedCoupons = computed(() => orderSummaryStore.orderSummary.selectedCoupons)
 
   // 고객이 보유한 쿠폰
   const availableCoupons = computed(() => couponStore.availableCoupons)

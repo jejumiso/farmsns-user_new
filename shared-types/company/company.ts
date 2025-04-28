@@ -1,6 +1,12 @@
 // shared-types/company/company.ts
 import { Timestamp, GeoPoint, DocumentReference } from '@/shared/firebase/firebaseTypes'
-import type { DeliveryCost } from '@/shared-types/deliveryCost/deliveryCost'
+
+export interface DeliveryConfig {
+  baseFee: number;            // 기본 배송비
+  baseDistance: number;       // 기본 거리 (예: 3000m)
+  additionalFee: number;     // 추가 요금 (예: 500원)
+  additionalDistance: number; // 추가 요금이 부과되는 거리 단위 (예: 5m)
+}
 
 export interface RewardPolicy {
   saveType: 'point' | 'stamp'
@@ -105,14 +111,14 @@ export interface Company {
   // 주문 지원
   orderSupport: OrderSupport
 
-  // 배송비
-  deliveryCost: DeliveryCost
-
   // 적립 정책
   rewardPolicy: RewardPolicy
 
   // 연락처 및 인증 정보
   contactInfo: ContactInfo
+
+  deliveryConfig: DeliveryConfig;  // 배달비를 설정할 필드
+
 
   // 카카오 알림톡 설정
   kakaoInfo: KakaoInfo
@@ -181,13 +187,7 @@ export function createEmptyCompany(): Company {
       supportParcel: false,
     },
 
-    deliveryCost: {
-      basicCost: 0,
-      basicM: 0,
-      addCost: 0,
-      addM: 0,
-      supportStrCost: '',
-    },
+
 
     rewardPolicy: {
       saveType: 'point',
@@ -207,6 +207,13 @@ export function createEmptyCompany(): Company {
       phoneSuffix: '',
       securedEmail: '',
       emailHash: '',
+    },
+
+    deliveryConfig: {
+      baseFee: 3000,
+      baseDistance: 3000,
+      additionalFee: 500,
+      additionalDistance: 500,
     },
 
     kakaoInfo: {
