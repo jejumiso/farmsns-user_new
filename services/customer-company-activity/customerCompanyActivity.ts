@@ -3,7 +3,7 @@ import { createSubcollectionService } from '@/services/common/subcollectionServi
 import type { ApiResponse } from '@/shared-types/apiResponse'
 import type { CustomerCompanyActivity } from '~/shared-types/customer-company-activity/customerCompanyActivity'
 
-export function createTabletSettingsService(companyId: string) {
+export function createCustomerCompanyActivityService(companyId: string) {
   const service = createSubcollectionService<CustomerCompanyActivity>(
     'v2_companies',
     companyId,

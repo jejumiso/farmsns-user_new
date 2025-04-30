@@ -9,9 +9,10 @@ import { createAuthService } from '~/services/auth/authService'
 import { stopCompanyRealtimeWatcher } from '~/utils/watchCompanyRealtime'
 import { useCartStore } from '~/stores/cart/useCartStore'
 import { createCustomerProfileService } from '@/services/customer/customerProfileService'
-import { createTabletSettingsService } from '~/services/customer-company-activity/customerCompanyActivity'
+import { createCustomerCompanyActivityService } from '~/services/customer-company-activity/customerCompanyActivity'
 import { useCouponStore } from '../coupon/useCouponStore'
 import { useOrderSummaryStore } from '../order/useOrderSummaryStore'
+import { clearAllCompanyCaches } from '@/utils/cache/companyCache'
 
 export const useUserAuthStore = defineStore('userAuth', {
   state: () => ({
@@ -42,8 +43,12 @@ export const useUserAuthStore = defineStore('userAuth', {
       this.currentUser = user
     },
 
-    async syncCustomerProfile(uid: string) {
+    async syncCustomerProfile() {
+      if(this.currentUser === null){
+        return
+      }
       try {
+        const uid = this.currentUser!.uid
         const customerRes = await createCustomerProfileService('guest').getById('',uid)
         const customer = customerRes.data as CustomerProfile
         if (customer) {
@@ -54,9 +59,18 @@ export const useUserAuthStore = defineStore('userAuth', {
       }
     },
 
-    async syncCustomerCompanyActivity(uid: string) {
+    async syncCustomerCompanyActivity() {
+      if(this.currentUser === null){
+        return
+      }
       try {
-        const activityRes = await createTabletSettingsService('guest').getById(uid)
+        const uid = this.currentUser!.uid
+        const companyId = this.customerProfile?.companyId;
+        if (!companyId) {
+          console.error('❌ companyId가 없습니다. API 호출을 중단합니다.');
+          return; // 여기서 멈춥니다
+        }
+        const activityRes = await createCustomerCompanyActivityService(companyId!).getById(uid)
         const activity = activityRes.data as CustomerCompanyActivity
         if (activity) {
           this.customerCompanyActivity = activity
@@ -75,9 +89,9 @@ export const useUserAuthStore = defineStore('userAuth', {
         if (firebaseUser) {
           console.log('Firebase Auth 상태 변경:', firebaseUser)
           const couponStore = useCouponStore()
-          await couponStore.fetchMyModifiedCoupons(firebaseUser.uid)
-          await this.syncCustomerProfile(firebaseUser.uid)
-          await this.syncCustomerCompanyActivity(firebaseUser.uid)
+          await couponStore.fetchMyModifiedCoupons()
+          await this.syncCustomerProfile()
+          await this.syncCustomerCompanyActivity()
         } else {
           this.currentUser = null
           this.customerProfile = null
@@ -91,13 +105,14 @@ export const useUserAuthStore = defineStore('userAuth', {
     logout() {
       const auth = getAuth()
       const cartStore = useCartStore()
+      cartStore.clearCart()
 
       const couponStore = useCouponStore()
       couponStore.clearCoupons()
-
       const orderSummaryStore = useOrderSummaryStore()
       orderSummaryStore.$reset()
-
+      
+      clearAllCompanyCaches()
 
 
       signOut(auth)
@@ -107,7 +122,7 @@ export const useUserAuthStore = defineStore('userAuth', {
       this.currentUser = null
       this.customerProfile = null
       this.customerCompanyActivity = null
-      cartStore.clearCart()
+      
       console.log('[userAuthStore] 로그아웃 완료 및 장바구니 초기화')
     },
   },

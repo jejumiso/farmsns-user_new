@@ -1,5 +1,4 @@
-
-// issuedCoupon.ts
+// 📁 shared-types/coupon/issuedCoupon.ts
 import type { Timestamp } from "@/shared/firebase/firebaseTypes";
 import { type Channel } from "./couponDefinition";
 import type { CouponDefinition } from "./couponDefinition";
@@ -18,24 +17,24 @@ export type CouponUsage = {
  */
 interface BaseIssuedCoupon {
   id: string;                     // 발행된 쿠폰 ID
-  uid: string;                    // 발급된 쿠폰의 고유 ID
+  uid: string;                    // 사용자 고유 ID
   couponDefinitionId: string;     // 원본 쿠폰 정의 ID
   couponName: string;             // 쿠폰 이름
   eventName: string;              // 이벤트 이름
   status: 'active' | 'used' | 'expired';
   issuingCompanyId: string;       // 발급 회사 ID
-  whereToUse: Channel;            // 'all'일 때 모든 채널 사용 가능
-  couponUsage: CouponUsage[];     // 사용된 주문 내역
-  availableCompanyIds?: string[]; // 비어 있으면 모든 회사 사용 가능
-  availableBrandNames?: string[]; // 비어 있으면 모든 브랜드 사용 가능
-  availableProductIds?: string[]; // 필요 시에만
-  availableCategoryIds?: string[];// 필요 시에만
-  memo?: string;                  // 쿠폰 관련 메모
-  dateIssuedyyyy: number,
-  dateIssuedyyyyMM: number,
-  dateIssuedyyyyMMdd: number,
-  dateIssued: Timestamp;          // 발급 일시
-  dateExpiration: Timestamp | null;// 만료 일시 (null이면 무기한)
+  whereToUse: Channel;            // 사용 가능한 채널
+  couponUsage: CouponUsage[];     // 사용 기록
+  availableCompanyIds?: string[];
+  availableBrandNames?: string[];
+  availableProductIds?: string[];
+  availableCategoryIds?: string[];
+  memo?: string;
+  dateIssuedyyyy: number;
+  dateIssuedyyyyMM: number;
+  dateIssuedyyyyMMdd: number;
+  dateIssued: Timestamp;
+  dateExpiration: Timestamp | null;
 }
 
 /**
@@ -45,14 +44,16 @@ export interface PercentIssuedCoupon extends BaseIssuedCoupon {
   type: 'percentDiscount';
   discountRate: number;
   discountMaxAmount?: number;
+  usedAmount: number; // ✅ 실제 주문에서 사용된 금액
 }
 
 /**
- * 금액 할인 발행 쿠폰
+ * 고정 금액 할인 발행 쿠폰
  */
 export interface FixedAmountIssuedCoupon extends BaseIssuedCoupon {
   type: 'fixedAmountDiscount';
-  discountAmount: number;
+  discountAmount: number; // ✅ 고정 할인 금액
+  usedAmount: number;     // ✅ 실제 주문에서 사용된 금액
   isPossibleSave: boolean;
 }
 
@@ -61,6 +62,7 @@ export interface FixedAmountIssuedCoupon extends BaseIssuedCoupon {
  */
 export interface FreeItemIssuedCoupon extends BaseIssuedCoupon {
   type: 'freeItem';
+  usedAmount: number; // ✅ 향후 사용시 대비해 추가 (지금은 기본 0)
 }
 
 export type IssuedCoupon =
@@ -69,11 +71,7 @@ export type IssuedCoupon =
   | FreeItemIssuedCoupon;
 
 /**
- * IssuedCoupon 기본 생성 팩토리
- * @param def - CouponDefinition
- * @param companyId - 발급 회사 ID
- * @param uid - 사용자 고유 ID
- * @param issuedAt - 발급 일시
+ * 발급 쿠폰 기본 생성 함수
  */
 export function createIssuedCoupon(
   def: CouponDefinition,
@@ -81,12 +79,10 @@ export function createIssuedCoupon(
   uid: string,
   issuedAt: Timestamp
 ): IssuedCoupon {
-
-  const date = new Date(issuedAt.toDate()); // Firestore Timestamp → JS Date
+  const date = new Date(issuedAt.toDate());
   const yyyy = date.getFullYear();
   const yyyyMM = yyyy * 100 + (date.getMonth() + 1);
   const yyyyMMdd = yyyy * 10000 + (date.getMonth() + 1) * 100 + date.getDate();
-
 
   const base = {
     id: generateIssuedId(),
@@ -117,24 +113,27 @@ export function createIssuedCoupon(
         type: 'percentDiscount',
         discountRate: def.discountRate,
         discountMaxAmount: def.discountMaxAmount,
+        usedAmount: 0, // ✅ 초기값 0
       };
     case 'fixedAmountDiscount':
       return {
         ...base,
         type: 'fixedAmountDiscount',
         discountAmount: def.discountAmount,
+        usedAmount: 0, // ✅ 초기값 0
         isPossibleSave: def.isPossibleSave,
       };
     case 'freeItem':
       return {
         ...base,
         type: 'freeItem',
+        usedAmount: 0, // ✅ 초기값 0
       };
   }
 }
 
 /**
- * 발행 쿠폰 ID 자동 생성
+ * 발행 쿠폰 ID 자동 생성기
  */
 function generateIssuedId(): string {
   const ts = Date.now().toString();

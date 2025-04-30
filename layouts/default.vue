@@ -11,9 +11,9 @@
       <ul class="flex justify-around text-sm text-gray-600">
         <li>
           <NuxtLink
-            to="/farmsns"
+            :to="`/${companyId}`"
             class="flex flex-col items-center justify-center py-2"
-            :class="{ 'text-green-600 font-bold': isActive('/') }"
+            :class="{ 'text-green-600 font-bold': isActive('') }"
           >
             <span>🏠</span>
             <span>홈</span>
@@ -21,7 +21,7 @@
         </li>
         <li>
           <NuxtLink
-            to="/farmsns/orders"
+            :to="`/${companyId}/orders`"
             class="flex flex-col items-center justify-center py-2"
             :class="{ 'text-green-600 font-bold': isActive('/orders') }"
           >
@@ -31,7 +31,7 @@
         </li>
         <li>
           <NuxtLink
-            to="/farmsns/mypage"
+            :to="`/${companyId}/mypage`"
             class="flex flex-col items-center justify-center py-2"
             :class="{ 'text-green-600 font-bold': isActive('/mypage') }"
           >
@@ -52,17 +52,19 @@ import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
 
 const route = useRoute()
 const authStore = useUserAuthStore()
+
+const companyId = computed(() => route.params.companyId as string || ''); // 👈 companyId를 computed로 관리
+
 watch(
   () => [route.params.companyId, authStore.currentUser?.uid],
   ([companyId, uid]) => {
     if (typeof companyId === 'string' && uid) {
-      console.log('💡 회사 또는 유저 변경 감지:', companyId)
+      console.log('💡 회사 또는 유저 변경 감지 회사ID:', companyId)
       handleCompanyChange(authStore.currentUser?.uid, companyId)
     }
   },
   { immediate: true }
 )
-
 
 function isActive(path: string) {
   return route.path.endsWith(path)
@@ -72,25 +74,18 @@ function isActive(path: string) {
 const isFullModalPage = computed(() => {
   const segments = route.path.split('/').filter(Boolean)
 
-  // 상품 상세: /products/{id}
   if (segments.includes('products') && segments.length > segments.indexOf('products') + 1) {
     return true
   }
 
-  // 카트나 주문 페이지: cart / order 하위
   if (segments.includes('cart') || segments.includes('order')) {
     return true
   }
 
-  // 마이페이지 주소 관리
   if (segments.includes('mypage') && segments.includes('address')) {
     return true
   }
 
   return false
 })
-
-
-
-
 </script>

@@ -11,4 +11,5 @@ export interface OrderSummary {
   selectedAddress: DeliveryAddress | null; // 배송지
   distance: number | null; // 배송지와 가게의 거리
   selectedMethod:string
+  customerMemo: string; // 고객 메모
 }

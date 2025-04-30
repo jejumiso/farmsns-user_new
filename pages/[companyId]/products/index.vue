@@ -84,10 +84,11 @@ const categories = computed(() =>
 const filteredProducts = computed(() => {
   const selected = viewStore.selectedCategoryId
   const items = !selected
-    ? productStore.items
-    : productStore.items.filter(p =>
-        Array.isArray(p.categories) && p.categories.includes(selected)
-      )
+  ? productStore.items.filter(p => p.isVisible && p.stockQuantity > 0)
+  : productStore.items
+      .filter(p => Array.isArray(p.categories) && p.categories.includes(selected))
+      .filter(p => p.isVisible && p.stockQuantity > 0)
+
 
   return items.slice().sort((a, b) => a.displayLevel - b.displayLevel)
 })

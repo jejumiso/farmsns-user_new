@@ -21,32 +21,44 @@ const router = useRouter()
 const { $firebaseAuth, $api } = useNuxtApp()
 
 onMounted(async () => {
-  const { loginToken } = route.params as { loginToken: string }
-  if (!loginToken) return router.replace('/error')
+  try {
+    const { loginToken } = route.params as { loginToken: string }
+    if (!loginToken) return router.replace('/error')
 
-  const { data: res } = await $api.post<ApiResponse<LoginResult>>(
-    '/api/userAuth/login-by-token',
-    { loginToken }
-  )
-  if (!res.isSuccess || !res.data?.customToken) {
-    return router.replace('/error')
+    const { data: res } = await $api.post<ApiResponse<LoginResult>>(
+      '/api/userAuth/login-by-token',
+      { loginToken }
+    )
+
+    console.log('서버 응답:', res) // ✅ 여기서는 정상적으로 찍힘
+
+    if (!res.isSuccess || !res.data?.customToken) {
+      alert(res.message)
+      return router.replace('/error')
+    }
+
+    console.log('커스텀 토큰 : ',res.data.customToken)
+
+    const cred = await signInWithCustomToken($firebaseAuth, res.data.customToken)
+        .catch((error) => {
+          console.error('Firebase 로그인 실패!');
+          console.error('에러 코드:', error.code);
+          console.error('에러 메시지:', error.message);
+          console.error('에러 상세:', error);
+          throw error; // 기존 catch로 던지게
+        });
+    const target = res.data.customerCompanyActivity
+      ? `/${res.data.companyId}/products`
+      : `/`
+    router.replace(target)
+
+  } catch (error: any) {
+    console.error('서버 요청 실패:', error.response?.status, error.response?.data)
+    alert('서버 요청 실패')
+    router.replace('/error')
   }
-
-  const cred = await signInWithCustomToken($firebaseAuth, res.data.customToken)
-  // const authStore = useUserAuthStore()
-  //onAuthStateChanged 에서 처리해야함..서버의 signInWithCustomToken에서도 간단하게 변경할것..
-  //
-  // authStore.setFirebaseUser(cred.user)
-  // authStore.setUser({
-  //   customerProfile: res.data.customerProfile,
-  //   customerCompanyActivity: res.data.customerCompanyActivity,
-  // })
-
-  const target = res.data.customerCompanyActivity
-    ? `/${res.data.companyId}/products`
-    : `/`
-  router.replace(target)
 })
+
 </script>
 
 <template>

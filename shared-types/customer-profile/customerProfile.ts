@@ -11,6 +11,7 @@ export interface CustomerProfile {
   securedUserNameHash: string // 해시된 사용자 이름 (검색용)
   photoURL: string | null // 프로필 사진
   companyIds: string[] // 가입한 업체 목록
+  companyId : string,
   isMember: boolean // 멤버십 여부
   deliveryAddressList: DeliveryAddress[] // 배송지 목록
   defaultDeliveryAddressId: string   // ✅ 기본 배송지 ID (주소 배열에서 참조)
@@ -55,6 +56,7 @@ export function createEmptyCustomerProfile(params: {
     securedUserNameHash: '',
     photoURL: null,
     companyIds: [],
+    companyId: '',
     isMember: false,
     deliveryAddressList: [],
     defaultDeliveryAddressId: '',

@@ -31,6 +31,7 @@ onMounted(async () => {
     { loginToken }
   )
   if (!res.isSuccess || !res.data?.customToken) {
+    alert(res.message)
     return router.replace('/error')
   }
 

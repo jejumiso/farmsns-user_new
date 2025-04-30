@@ -10,14 +10,14 @@
     </NuxtLink>
 
     <NuxtLink
-  to="/token/9544ac4c5c8ec2dee10648f3750d616ecafaad275066aaf5d495b971983b02af"
+  to="/token/5be12d1619094e648645b00c9e2d86182515047da9ed806ee728227933f56f1b"
   class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-4"
 >
   자동 로그인 테스트
 </NuxtLink>
 
 <NuxtLink
-  to="/token/9544ac4c5c8ec2dee10648f3750d616ecafaad275066aaf5d495b971983b02af/mypage"
+  to="/token/5be12d1619094e648645b00c9e2d86182515047da9ed806ee728227933f56f1b/mypage"
   class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-4"
 >
   자동 로그인 테스트 - 마이페이지

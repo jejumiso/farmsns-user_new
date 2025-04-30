@@ -39,7 +39,7 @@ export type StoreKey =
   | 'order'
   | 'stampLog'
   | 'adminLog'
-  | 'ordersWating'
+  | 'ordersWaiting'
   | 'counter'
   | 'couponIssued'
 
@@ -159,9 +159,9 @@ export const COLLECTION_PERMISSIONS: Record<StoreKey, CollectionPermissions> = {
       delete: ['admin'],
     },
   },
-  ordersWating: {
-    name: 'v2_ordersWating',
-    key: 'ordersWating',
+  ordersWaiting: {
+    name: 'v2_ordersWaiting',
+    key: 'ordersWaiting',
     prefix: 'ow',
     permissions: {
       read: ['admin', 'user'],

@@ -17,6 +17,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
       selectedAddress: null, // 배송지
       distance: null, // 배송지와 가게의 거리
       deliveryFee: 0, // 배송비
+      customerMemo : '', // 고객 메모
     } as OrderSummary,
   }),
 
@@ -26,6 +27,19 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
   },
 
   actions: {
+    resetOrderSummary() {
+      this.orderSummary = {
+        selectedCoupons: [],
+        paymentMethod: 'easy',
+        usedPoint: 0,
+        selectedMethod: 'takeout',
+        selectedAddress: null,
+        distance: null,
+        deliveryFee: 0,
+        customerMemo: '',
+      }
+    },
+
     // OrderSummary 객체를 스토어에 세팅
     setOrderSummary(orderData: OrderSummary) {
       this.orderSummary = orderData

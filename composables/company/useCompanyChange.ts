@@ -30,7 +30,18 @@ export async function handleCompanyChange(uid: string | undefined, companyId: st
   if (uid === undefined || companyId === undefined || companyId === '') {
     useUserAuthStore().customerCompanyActivity = null
   } else {
-    console.log('uid:', uid)
+    console.log('uid:', uid,'companyId:', companyId)
+    if (!companyId) {
+      console.error('❌ companyId가 없습니다. 하위 문서를 조회할 수 없습니다.');
+      return;
+    }
+
+    if (!uid) {
+      console.error('❌ 하위 문서의 id가 없습니다.');
+      return;
+    }
+    
+
     const service = createSubcollectionService<CustomerCompanyActivity>(
       'v2_companies',
       companyId,

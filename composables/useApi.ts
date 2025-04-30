@@ -17,6 +17,8 @@ export const useApi = () => {
     headers: {
       Authorization: token.value ? `Bearer ${token.value}` : undefined,
     },
+    // withCredentials: true, // 🔥 
+
   })
   const { $firebaseAuth } = useNuxtApp()
 

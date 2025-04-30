@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import type { IssuedCoupon } from '@/shared-types/coupon/issuedCoupon'
 import { createUserIssuedCouponService } from '~/services/IssuedCoupon/issuedCouponService'
+import { useUserAuthStore } from '../userAuth/useUserAuthStore'
 
 export const useCouponStore = defineStore('couponStore', {
   state: () => ({
@@ -38,14 +39,31 @@ export const useCouponStore = defineStore('couponStore', {
     //   }
     // },
 
-    async fetchMyModifiedCoupons(uid: string) {
+    async fetchMyModifiedCoupons() {
+      const userAuth = useUserAuthStore()
+
+      const uid = userAuth.currentUser?.uid
+      if (!uid) {
+        console.error('[fetchMyModifiedCoupons] 사용자 정보가 없습니다.')
+        this.errorMessage = '사용자 정보가 없습니다.'
+        return
+      }
+      
       console.log('[fetchMyModifiedCoupons] 호출됨, uid:', uid)
       this.loading = true
       try {
         const service = createUserIssuedCouponService()
-        const updatedCoupons = await service.getMyModifiedCoupons(uid, this.lastFetchedAt || 0)
+        const updatedCoupons = await service.getMyModifiedCoupons(uid, 0)  // ✅ 전체 가져오기
         console.log('[fetchMyModifiedCoupons] 가져온 쿠폰 수:', updatedCoupons.length)
-        this.mergeCoupons(updatedCoupons)
+    
+        // 🎯 [임시 처리] status === 'active'인 쿠폰만 사용
+        const activeCoupons = updatedCoupons.filter(coupon => coupon.status === 'active')
+    
+        console.log('[fetchMyModifiedCoupons] 사용 가능한 쿠폰 수:', activeCoupons.length)
+    
+        // ✅ 기존 쿠폰 초기화하고, 활성 쿠폰만 다시 세팅
+        this.coupons = activeCoupons
+    
         this.lastFetchedAt = Date.now()
       } catch (error) {
         console.error('[fetchMyModifiedCoupons] 쿠폰 가져오기 실패:', error)
@@ -54,6 +72,8 @@ export const useCouponStore = defineStore('couponStore', {
         this.loading = false
       }
     },
+    
+    
     
 
     mergeCoupons(updatedCoupons: IssuedCoupon[]) {
