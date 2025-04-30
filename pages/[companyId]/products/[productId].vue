@@ -1,4 +1,4 @@
-<!-- pages/[companyId]/products/[productId].vue -->
+<!-- 📁 pages/[companyId]/products/[productId].vue -->
 <template>
     <ProductDetailModal :productId="productId" @close="handleClose" />
   </template>

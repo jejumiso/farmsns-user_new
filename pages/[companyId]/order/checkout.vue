@@ -1,3 +1,4 @@
+<!-- 📁 pages/[companyId]/order/checkout.vue-->
 <template>
   <div class="p-6 max-w-md mx-auto space-y-4">
     <header class="flex justify-between p-4 border-b shadow-sm bg-white sticky top-0 z-50">
@@ -7,8 +8,7 @@
       </button>
     </header>
 
-    <div class="flex-1 overflow-y-auto p-4 space-y-6">
-      <!-- 주문 방법 선택 버튼들 -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-6 min-h-screen pb-32">
       <div class="flex gap-2 justify-center">
         <button
           v-for="method in methods"
@@ -24,7 +24,6 @@
         </button>
       </div>
 
-      <!-- 배송지 -->
       <div v-if="selectedMethod === 'delivery'" class="bg-gray-100 p-3 rounded-md">
         <p class="font-medium">배송지</p>
         <div v-if="selectedAddress">
@@ -45,7 +44,6 @@
         <p v-else>거리 정보를 불러오는 중…</p>
       </div>
 
-      <!-- 주문 요약 -->
       <div class="bg-gray-50 p-4 rounded-md">
         <h2 class="font-semibold text-lg mb-4">🛒 주문 요약</h2>
         <div v-for="item in cartItems" :key="item.id" class="flex justify-between border-b py-2 text-sm">
@@ -65,20 +63,16 @@
           <p>총 상품금액: {{ cartTotal.toLocaleString() }}원</p>
           <p>쿠폰 할인: -{{ couponDiscount.toLocaleString() }}원</p>
           <p>포인트 사용: -{{ usedPoint.toLocaleString() }}원</p>
-
           <div v-if="selectedMethod === 'delivery'">
             <p>배송비: {{ deliveryFee.toLocaleString() }}원</p>
           </div>
-
           <div class="mt-3 text-green-700">
             <p>🎁 적립 예정 포인트: {{ rewardPointPlanned }}P</p>
             <p>🎟️ 적립 예정 스탬프: {{ rewardStampPlanned }}개</p>
           </div>
-
           <div v-if="hasExcludedReward" class="mt-2 text-red-500 text-xs">
             ※ 일부 상품은 할인 적용으로 리워드가 제외됩니다.
           </div>
-
           <hr class="my-2" />
           <p class="text-lg font-bold">
             최종 결제금액: {{ finalAmount.toLocaleString() }}원
@@ -86,7 +80,6 @@
         </div>
       </div>
 
-      <!-- 쿠폰 선택 -->
       <div>
         <p class="font-medium">쿠폰 선택</p>
         <div v-for="coupon in filteredCoupons" :key="coupon.id" class="flex items-center gap-2">
@@ -101,7 +94,6 @@
         </div>
       </div>
 
-      <!-- 포인트 사용 -->
       <div>
         <p class="font-medium">포인트 사용</p>
         <div class="flex items-center gap-2 mt-1">
@@ -124,7 +116,6 @@
         </div>
       </div>
 
-      <!-- 결제 수단 -->
       <div v-if="finalAmount > 0">
         <p class="font-medium">결제 수단</p>
         <div class="space-y-2">
@@ -145,13 +136,27 @@
         </div>
       </div>
 
-      <!-- 주문하기 버튼 -->
-      <button @click="placeOrder" class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 mt-4" type="button">
-        주문하기
-      </button>
+      <div class="sticky bottom-0 bg-white p-4 z-10">
+        <button
+          @click="placeOrder"
+          class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700"
+          type="button"
+        >
+          주문하기
+        </button>
+      </div>
+
+      <CardSliderModal
+        v-if="showCardSlider"
+        :order-id="tempOrderId"
+        :amount="finalAmount"
+        :client-id="companyStore.currentCompany?.nicepayConfig.clientId || ''"
+        @close="showCardSlider = false"
+      />
     </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { ref, computed, watch, onMounted } from 'vue'
@@ -163,9 +168,11 @@ import { useCompanyStore } from '@/stores/company/useCompanyStore'
 import { useCouponOptimizer } from '~/composables/coupon/useCouponOptimizer'
 import { useUserAuthStore } from '~/stores/userAuth/useUserAuthStore'
 import { createOrderService } from '~/services/order/createOrderService'
+import CardSliderModal from '@/components/payment/CardSliderModal.vue'
 import type { IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
 import { Timestamp } from '~/shared/firebase/firebaseTypes'
 import type { Order } from '~/shared-types/order/order'
+
 declare global {
   interface Window {
     AUTHNICE: any;
@@ -178,24 +185,14 @@ const methods = [
   { value: 'delivery', label: '배달' },
 ] as const
 
-// 결제 오류: [P012]파라미터 method[zeropay]는 [card, directCard, vbank, naverpayCard, naverpayPoint, kakaopay, kakaopayCard, kakaopayMoney, samsungpayCard, payco, ssgpay, cardAndEasyPay, bank, cellphone, all] 값만 허용 합니다.
-
-
-const paymentMethods = computed(() => {
-  const isDelivery = selectedMethod.value === 'delivery'
-
-  return [
-    {
-      value: 'onsite',
-      label: isDelivery ? '만나서 결제' : '매장에서 결제'
-    },
-    { value: 'bank', label: '무통장 입금' },
-    { value: 'card', label: '카드 결제' },
-    { value: 'naverpayCard', label: '네이버페이' },
-    { value: 'kakaopay', label: '카카오페이' },
-    { value: 'easy', label: '비밀번호 간편결제' },
-  ]
-})
+const paymentMethods = [
+  { value: 'onsite', label: '현장 결제' },
+  { value: 'bank', label: '무통장 입금' },
+  { value: 'card', label: '카드 결제' },
+  { value: 'naverpayCard', label: '네이버페이' },
+  { value: 'kakaopay', label: '카카오페이' },
+  { value: 'easy', label: '비밀번호 간편결제' },
+] as const
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -204,6 +201,9 @@ const orderSummaryStore = useOrderSummaryStore()
 const companyStore = useCompanyStore()
 const optimizer = useCouponOptimizer()
 const userAuth = useUserAuthStore()
+
+const tempOrderId = ref('')
+const showCardSlider = ref(false)
 
 const availablePoint = computed(() => userAuth.customerCompanyActivity?.pointRemaining ?? 0)
 const coupons = computed(() => couponStore.coupons)
@@ -219,9 +219,7 @@ const filteredCoupons = computed(() => {
 const couponDiscount = computed(() => optimizer.calculateCouponDiscountForSelected())
 const useMaxPoint = ref(false)
 watch(useMaxPoint, (newVal) => {
-  if (newVal) {
-    recalculateUsedPoint()
-  }
+  if (newVal) recalculateUsedPoint()
 })
 
 const cartItems = computed(() => cartStore.items)
@@ -241,11 +239,7 @@ const selectedAddress = computed(() => orderSummaryStore.orderSummary.selectedAd
 const distance = computed(() => orderSummaryStore.orderSummary.distance)
 const formattedDistance = computed(() => {
   if (distance.value !== null) {
-    if (distance.value >= 1000) {
-      return (distance.value / 1000).toFixed(1) + ' km'
-    } else {
-      return distance.value + ' m'
-    }
+    return distance.value >= 1000 ? (distance.value / 1000).toFixed(1) + ' km' : distance.value + ' m'
   }
   return ''
 })
@@ -274,20 +268,17 @@ function selectMethod(m: string) {
   orderSummaryStore.updateOrderSummary({ selectedMethod: m })
   orderSummaryStore.updateSelectedAddress()
 }
+
 function selectPaymentMethod(method: string) {
   orderSummaryStore.updateOrderSummary({ paymentMethod: method })
 }
 
 function handlePointInput() {
-  if (usedPoint.value > availablePoint.value) {
-    usedPoint.value = availablePoint.value
-  }
-  if (usedPoint.value < 0) {
-    usedPoint.value = 0
-  }
+  if (usedPoint.value > availablePoint.value) usedPoint.value = availablePoint.value
+  if (usedPoint.value < 0) usedPoint.value = 0
 }
 
-function toggleCoupon(coupon : IssuedCoupon) {
+function toggleCoupon(coupon: IssuedCoupon) {
   const index = selectedCoupons.value.findIndex(c => c.id === coupon.id)
   if (index === -1) {
     selectedCoupons.value.push(coupon)
@@ -301,9 +292,8 @@ function toggleCoupon(coupon : IssuedCoupon) {
 function recalculateUsedPoint() {
   if (useMaxPoint.value) {
     const afterCouponAmount = Math.max(0, cartTotal.value + deliveryFee.value - couponDiscount.value)
-    const pointToUse = Math.min(afterCouponAmount, availablePoint.value)
-    usedPoint.value = pointToUse
-    orderSummaryStore.updateOrderSummary({ usedPoint: pointToUse })
+    usedPoint.value = Math.min(afterCouponAmount, availablePoint.value)
+    orderSummaryStore.updateOrderSummary({ usedPoint: usedPoint.value })
   } else {
     orderSummaryStore.updateOrderSummary({ usedPoint: usedPoint.value })
   }
@@ -314,70 +304,54 @@ function goToAddressManage() {
 }
 
 async function placeOrder() {
-  if(companyStore.currentCompanyId == null) {
-    alert('회사를 선택해주세요.')
-    return
-  }
-  if(userAuth.currentUser?.uid == null) {
-    alert('로그인 후 주문해주세요.')
-    return
-  }
-  if (cartStore.items.length === 0) {
-    alert('장바구니에 상품이 없습니다.')
-    return
-  }
+  if (!companyStore.currentCompanyId) return alert('회사를 선택해주세요.')
+  if (!userAuth.currentUser?.uid) return alert('로그인 후 주문해주세요.')
+  if (cartStore.items.length === 0) return alert('장바구니에 상품이 없습니다.')
+
   const orderService = createOrderService()
   if (finalAmount.value === 0) {
-  orderSummaryStore.updateOrderSummary({ paymentMethod: 'zeropay' })
-}
+    orderSummaryStore.updateOrderSummary({ paymentMethod: 'zeropay' })
+  }
 
   const res = await orderService.placeOrder(companyStore.currentCompanyId, {
-  ...orderSummaryStore.orderSummary,
-  cartItems: cartStore.items,
-  selectedCoupons: orderSummaryStore.orderSummary.selectedCoupons.map(coupon => ({
-    ...coupon,
-    usedAmount: coupon.usedAmount ?? 0
-  })),
-  paymentMethod: orderSummaryStore.orderSummary.paymentMethod as Order['paymentMethod'],
-  selectedMethod: orderSummaryStore.orderSummary.selectedMethod as Order['selectedMethod'],
+    ...orderSummaryStore.orderSummary,
+    cartItems: cartStore.items,
+    selectedCoupons: orderSummaryStore.orderSummary.selectedCoupons.map(c => ({ ...c, usedAmount: c.usedAmount ?? 0 })),
+    paymentMethod: orderSummaryStore.orderSummary.paymentMethod as Order['paymentMethod'],
+    selectedMethod: orderSummaryStore.orderSummary.selectedMethod as Order['selectedMethod'],
+    companyId: companyStore.currentCompanyId,
+    customerId: userAuth.currentUser?.uid!,
+    orderStatus: 'pending',
+    processStatus: 'waitingConfirm',
+    dateCreated: Timestamp.now(),
+    dateModified: Timestamp.now(),
+    productTotalAmount: cartStore.cartTotal,
+    couponDiscountTotal: optimizer.calculateCouponDiscountForSelected(),
+    finalAmount: finalAmount.value,
+    deliveryFee: orderSummaryStore.orderSummary.deliveryFee,
+    distance: orderSummaryStore.orderSummary.distance ?? 0,
+    selectedAddress: orderSummaryStore.orderSummary.selectedAddress!,
+    customerMemo: orderSummaryStore.orderSummary.customerMemo ?? '',
+    rewardPointPlanned: rewardPointPlanned.value,
+    rewardStampPlanned: rewardStampPlanned.value,
+    paidAmount: 0,
+    datePayment: Timestamp.fromMillis(0),
+    paymentConfirmed: false,
+  })
 
-  // ✅ 필수 필드 직접 지정
-  companyId: companyStore.currentCompanyId,
-  customerId: userAuth.currentUser?.uid!,
-  orderStatus: 'pending',
-  processStatus: 'waitingConfirm',
-  dateCreated: Timestamp.now(),
-  dateModified: Timestamp.now(),
-  productTotalAmount: cartStore.cartTotal,
-  couponDiscountTotal: optimizer.calculateCouponDiscountForSelected(),
-  finalAmount: finalAmount.value,
-  deliveryFee: orderSummaryStore.orderSummary.deliveryFee,
-  distance: orderSummaryStore.orderSummary.distance ?? 0,
-  selectedAddress: orderSummaryStore.orderSummary.selectedAddress!,
-  customerMemo: orderSummaryStore.orderSummary.customerMemo ?? '',
-  rewardPointPlanned: rewardPointPlanned.value,
-  rewardStampPlanned: rewardStampPlanned.value,
+  const clientId = companyStore.currentCompany?.nicepayConfig.clientId
+  if (!clientId) return alert('결제 서비스 설정이 필요합니다.')
 
-  // 결제 전이므로 기본값
-  paidAmount: 0,
-  datePayment: Timestamp.fromMillis(0),
-  paymentConfirmed: false,
-})
-
-const clientId = companyStore.currentCompany?.nicepayConfig.clientId
-  if (!clientId) {
-    alert('결제 서비스 설정이 필요합니다.')
-    return
-  }
   if (res.isSuccess && res.data) {
-  const isZeroPayLike =
-    ['onsite', 'bank', 'zeropay'].includes(orderSummaryStore.orderSummary.paymentMethod)
-
-  if (isZeroPayLike) {
-    // ✅ API에서 완료 처리된 것이므로 바로 완료 페이지로 이동
-    router.push(`/${companyId}/payment/complete?orderId=${res.data.id}`)
+    tempOrderId.value = res.data.id
+    if (paymentMethod.value === 'easy') {
+      showCardSlider.value = true
+      return
+    }
+    const isZeroPayLike = ['onsite', 'bank', 'zeropay'].includes(orderSummaryStore.orderSummary.paymentMethod)
+    if (isZeroPayLike) {
+      router.push(`/${companyId}/payment/complete?orderId=${res.data.id}`)
     } else {
-      // ✅ 나이스페이 호출
       serverAuth({
         orderId: res.data.id,
         amount: finalAmount.value,
@@ -397,9 +371,6 @@ type PaymentParams = {
   method?: string
 }
 
-
-
-
 function serverAuth({ orderId, amount, clientId, method = 'card' }: PaymentParams) {
   window.AUTHNICE.requestPay({
     clientId,
@@ -407,11 +378,10 @@ function serverAuth({ orderId, amount, clientId, method = 'card' }: PaymentParam
     orderId,
     amount,
     goodsName: '주문 상품',
-    returnUrl : 'http://127.0.0.1:5001/farmsns-main/asia-northeast3/api/api/payment/complete',
+    returnUrl: 'http://127.0.0.1:5001/farmsns-main/asia-northeast3/api/api/payment/complete',
     fnError: ({ errorMsg }: any) => alert('결제 오류: ' + errorMsg),
   })
 }
-
 
 function close() {
   router.back()

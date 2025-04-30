@@ -11,7 +11,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
   state: () => ({
     orderSummary: {
       selectedCoupons: [], // 선택된 쿠폰들
-      paymentMethod: 'easy', // 결제 방법
+      paymentMethod: 'onsite', // 결제 방법
       usedPoint: 0, // 사용된 포인트
       selectedMethod: 'takeout', // 주문 방법 (포장, 매장, 배달)
       selectedAddress: null, // 배송지
@@ -30,7 +30,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
     resetOrderSummary() {
       this.orderSummary = {
         selectedCoupons: [],
-        paymentMethod: 'easy',
+        paymentMethod: 'onsite',
         usedPoint: 0,
         selectedMethod: 'takeout',
         selectedAddress: null,

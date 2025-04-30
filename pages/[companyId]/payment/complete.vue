@@ -1,4 +1,4 @@
-<!-- /pages/[companyId]/payment/complete.vue -->
+<!-- 📁 /pages/[companyId]/payment/complete.vue -->
 <template>
   <div class="min-h-screen flex flex-col items-center justify-center p-6">
     <template v-if="isSuccess">

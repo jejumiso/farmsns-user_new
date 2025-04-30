@@ -1,4 +1,4 @@
-// 📁 pages/[companyId]/products/index.vue
+<!-- 📁 pages/[companyId]/products/index.vue-->
 <template>
   <div class="p-4 max-w-3xl mx-auto">
     <!-- 카테고리 버튼 -->

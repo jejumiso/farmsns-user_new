@@ -1,79 +1,50 @@
+<!-- 📁 components/payment/CardSlider.vue -->
 <template>
-    <div class="relative w-full overflow-hidden">
+  <div class="relative w-full overflow-x-auto px-4 py-6 scroll-container">
+    <div class="flex gap-4 w-max snap-x snap-mandatory">
+      <!-- 카드 리스트 -->
       <div
-        class="flex transition-transform ease-in-out duration-300"
-        :style="`transform: translateX(-${currentIndex * (cardWidth + gap)}px)`"
-        ref="sliderRef"
+        v-for="card in savedCards"
+        :key="card.bid"
+        class="w-[80vw] shrink-0 snap-start bg-white rounded-2xl shadow-md p-4 flex flex-col justify-between"
       >
-        <div
-          v-for="(card, index) in cardsWithAdd"
-          :key="card.id || 'add-card'"
-          :class="['shrink-0', 'rounded-xl', 'shadow-md', 'bg-white', 'p-4', 'mr-4', { 'border-2 border-green-500': index === currentIndex }]"
-          :style="`width: ${cardWidth}px`"
-          @click="handleCardClick(index, card)"
+        <div class="text-sm text-gray-500 mb-2">{{ card.cardName }}</div>
+        <div class="text-xl font-bold">**** **** **** {{ card.cardNum.slice(-4) }}</div>
+        <button
+          class="mt-6 bg-green-600 text-white py-2 rounded-md hover:bg-green-700"
+          @click="$emit('pay', card)"
         >
-          <div v-if="card.type === 'card'">
-            <p class="font-bold text-lg">{{ card.cardName }}</p>
-            <p class="text-sm text-gray-500">**** **** **** {{ card.last4 }}</p>
-            <button class="mt-2 text-red-500 text-sm underline" @click.stop="deleteCard(card)">삭제</button>
-          </div>
-  
-          <div v-else class="flex flex-col justify-center items-center h-full text-center">
-            <p class="text-xl">➕</p>
-            <p class="text-sm">카드 등록하기</p>
-          </div>
-        </div>
+          이 카드로 결제하기
+        </button>
+      </div>
+
+      <!-- 카드 등록 카드 -->
+      <div
+        class="w-[80vw] shrink-0 snap-start bg-gray-100 rounded-2xl border-dashed border-2 border-gray-300 flex items-center justify-center text-gray-500 text-lg font-medium cursor-pointer"
+        @click="$emit('register')"
+      >
+        + 새 카드 등록하기
       </div>
     </div>
-  </template>
-  
-  <script setup lang="ts">
-  import { ref, computed, onMounted } from 'vue'
-  
-  type CardItem = {
-    id: string
-    type: 'card'
+  </div>
+</template>
+
+<script setup lang="ts">
+defineProps<{
+  savedCards: Array<{
+    bid: string
     cardName: string
-    last4: string
-  } | {
-    id: null
-    type: 'add'
-  }
-  
-  const props = defineProps<{
-    cards: CardItem[]
-  }>()
-  
-  const emit = defineEmits<{
-    (e: 'select', card: CardItem): void
-    (e: 'add'): void
-    (e: 'delete', card: CardItem): void
-  }>()
-  
-  const cardWidth = 280
-  const gap = 16
-  const currentIndex = ref(0)
-  const sliderRef = ref<HTMLElement | null>(null)
-  
-  const cardsWithAdd = computed(() => [
-    ...props.cards,
-    { id: null, type: 'add' } as CardItem
-  ])
-  
-  function handleCardClick(index: number, card: CardItem) {
-    currentIndex.value = index
-    if (card.type === 'add') emit('add')
-    else emit('select', card)
-  }
-  
-  function deleteCard(card: CardItem) {
-    emit('delete', card)
-  }
-  </script>
-  
-  <style scoped>
-  .relative {
-    padding-bottom: 20px;
-  }
-  </style>
-  
+    cardNum: string
+  }>
+}>()
+</script>
+
+<style scoped>
+.scroll-container {
+  -webkit-overflow-scrolling: touch;
+  scroll-snap-type: x mandatory;
+}
+::-webkit-scrollbar {
+  display: none;
+}
+</style>
