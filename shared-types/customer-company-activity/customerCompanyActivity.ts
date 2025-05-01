@@ -1,4 +1,5 @@
 import { Timestamp } from "@/shared/firebase/firebaseTypes"
+import type { CardBidInfo } from "../nicepay/CardBidInfo"
 
 export interface CustomerCompanyActivity {
   id: string // uid
@@ -23,6 +24,10 @@ export interface CustomerCompanyActivity {
   shopMoney: number
   orderTotalCount: number
   orderTotalPrice: number
+  bids: {
+    [cardId: string]: CardBidInfo
+  }
+  
 
   // 메타 정보
   dateModified: Timestamp
@@ -56,6 +61,8 @@ export function createEmptyCustomerCompanyActivity(params: {
     shopMoney: 0,
     orderTotalCount: 0,
     orderTotalPrice: 0,
+
+    bids: {},
 
     // 메타 정보
     dateCreated: now,
