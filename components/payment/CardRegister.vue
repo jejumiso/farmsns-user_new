@@ -1,6 +1,11 @@
 <template>
   <div class="p-6 space-y-4">
     <h2 class="text-lg font-semibold text-center">카드 등록</h2>
+<!-- CardRegister.vue 상단 또는 카드번호 입력 위에 삽입 -->
+<p class="text-sm text-gray-500 mb-3">
+  ※ 탐나는전 카드는 등록이 불가합니다.
+</p>
+
     <p class="text-sm font-medium">카드번호</p>
     <div class="space-y-4">
       <!-- 카드번호 4칸 -->

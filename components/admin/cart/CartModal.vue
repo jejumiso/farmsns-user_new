@@ -9,7 +9,10 @@
       <h2 class="text-xl font-bold text-center">🛒 장바구니</h2>
 
       <div v-if="cart.items.length === 0" class="text-center text-gray-400">
-        장바구니가 비어있습니다.
+        <p class="text-gray-500">장바구니가 비어있어요</p>
+        <button @click="$emit('close')" class="px-4 py-2 bg-green-600 text-white rounded">
+          상품 더 고르기
+        </button>
       </div>
 
       <div v-else class="space-y-4">

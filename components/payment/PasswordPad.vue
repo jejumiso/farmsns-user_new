@@ -40,9 +40,8 @@
       <button
         class="mt-4 flex-1 py-3 min-w-[120px] rounded-md text-white font-semibold bg-gray-400 hover:bg-gray-500"
         @click="emit('back')"
-        v-if="step === 2"
       >
-        이전
+      {{ step === 2 ? '이전' : '취소' }}
       </button>
 
       <button
