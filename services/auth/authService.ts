@@ -44,7 +44,7 @@ export function createAuthService() {
 
         const { customToken } = response.data;
 
-        console.log('SMS verified 성공 ',customToken);
+        console.log('SMS 인증 성공 ',customToken);
         const userCredential = await signInWithCustomToken(auth, customToken);
         return userCredential.user;
       } catch (error: any) {

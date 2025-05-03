@@ -112,7 +112,7 @@ export function createIssuedCoupon(
         ...base,
         type: 'percentDiscount',
         discountRate: def.discountRate,
-        discountMaxAmount: def.discountMaxAmount,
+        ...(def.discountMaxAmount !== undefined && { discountMaxAmount: def.discountMaxAmount }),
         usedAmount: 0, // ✅ 초기값 0
       };
     case 'fixedAmountDiscount':

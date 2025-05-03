@@ -1,3 +1,4 @@
+<!-- layouts/default.vue -->
 <template>
   <div class="min-h-screen pb-16 bg-white">
     <!-- 콘텐츠 영역 -->

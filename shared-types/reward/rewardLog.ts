@@ -1,5 +1,11 @@
 import type { Timestamp } from '@/shared/firebase/firebaseTypes'
 
+export interface ConvertedCouponSummary {
+  couponId: string
+  couponDefinitionId: string
+}
+
+
 export interface RewardLog {
   id: string            // 로그 ID
   uid: string           // 사용자 UID
@@ -18,9 +24,10 @@ export interface RewardLog {
   pointRemaining: number  // 현재 보유 포인트
   tabletNum: number       // 태블릿 번호 (웹은 0 등으로)
 
-  rewardType: 'stampSave' | 'stampUse' | 'pointSave' | 'pointUse' | 'adjustment' // 보상 유형 (예: '스탬프적립', '포인트사용')
-  source: 'order' | 'tablet' | 'admin' | 'system'  // 발생 출처 (예: 'order', 'tablet')
+  rewardType: 'stampSave' | 'stampConverted' | 'pointSave' | 'pointUse' | 'adjustment' // 보상 유형 (예: '스탬프적립', '포인트사용')
+  source: 'order' | 'tablet' | 'admin' | 'system' | 'autoReward'  // 발생 출처 (예: 'order', 'tablet')
   memo: string            // 관리용 메모
+  convertedCoupons?: ConvertedCouponSummary[] 
 
   dateCreated: Timestamp
   dateModified: Timestamp

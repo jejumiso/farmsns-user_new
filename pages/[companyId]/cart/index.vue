@@ -1,3 +1,4 @@
+<!-- 📁 pages/[companyId]/cart/index.vue -->
 <template>
   <CartModal @close="handleClose" />
 </template>

@@ -1,8 +1,8 @@
 import { useApi } from '@/composables/useApi'
-import type { PointSave } from '@/shared-types/reward/pointSave'
 import type { AllimtalkRequest } from '@/shared-types/company/allim_talk_request_type'
 import type { CouponDefinition } from '@/shared-types/coupon/couponDefinition'
 import type { ApiResponse } from '~/shared-types/apiResponse'
+import type { RewardLog } from '~/shared-types/reward/rewardLog'
 
 const api = useApi()
 
@@ -10,9 +10,9 @@ const api = useApi()
  * 적립 정보 저장 요청 (알림톡 포함)
  */
 export async function saveRewardByPhoneNumber(payload: {
-  pointSave: PointSave
+  rewardLog: RewardLog
   allimtalkRequest: AllimtalkRequest
-  couponCreationConditions: CouponDefinition[]
+  couponDefinitions: CouponDefinition[]
   iv : string
 }):Promise<ApiResponse<any>> {
   try {
@@ -20,7 +20,7 @@ export async function saveRewardByPhoneNumber(payload: {
     console.log('✅ 적립 저장 성공:', response.data)
     return response.data
   } catch (error) {
-    console.error('❌ 적립 저장 실패:', error)
+    console.error('❌ 적립 저장 실패:', JSON.stringify(error))
     throw error
   }
 }

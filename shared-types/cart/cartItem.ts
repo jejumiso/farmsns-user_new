@@ -16,3 +16,16 @@ export interface CartItem {
     price: number
   }[]
 }
+
+export interface ProcessedOrderItem {
+  productId: string
+  productName: string
+  priceOriginal: number
+  priceDiscounted: number
+  image: string
+  rewardPoint: number
+  rewardStamp: number
+  quantity: number
+  options: any // 타입 명확히 정의 가능
+}
+

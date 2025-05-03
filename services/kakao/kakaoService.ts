@@ -43,20 +43,21 @@ export function createKakaoService() {
     // getFriendBySenderKey
     async getFriendBySenderKey(senderkey: string): Promise<ApiResponse> {
       try {
-        const response = await api.post('/api/alligo/friendList', { senderkey}); // api 인스턴스 사용
+        const response = await api.post('/api/alligo/friendList', { senderkey }); // api 인스턴스 사용
         console.log('friendList successfully:', response.data);
-        if(response.data.code === 0 && response.data.list.length === 0){
+        if (response.data.isSuccess && response.data.data.length === 0) {
           return {
             isSuccess: false,
             message: '등록 된 키가 없습니다.',
-            data: {}, // 필요한 데이터만 반환
-          }; 
+            data: {}, 
+          };
         }
+
         return {
-          isSuccess: response.data.code === 0,
+          isSuccess: response.data.isSuccess,
           message: response.data.message,
-          data: response.data.list[0], // 필요한 데이터만 반환
-        }; 
+          data: response.data.data[0], // ✅ 수정: response.data.data[0]
+        };
         
         
         // ApiResponse 타입에 맞게 반환

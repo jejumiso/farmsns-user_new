@@ -59,26 +59,26 @@ export const useUserAuthStore = defineStore('userAuth', {
       }
     },
 
-    async syncCustomerCompanyActivity() {
-      if(this.currentUser === null){
-        return
-      }
-      try {
-        const uid = this.currentUser!.uid
-        const companyId = this.customerProfile?.companyId;
-        if (!companyId) {
-          console.error('❌ companyId가 없습니다. API 호출을 중단합니다.');
-          return; // 여기서 멈춥니다
-        }
-        const activityRes = await createCustomerCompanyActivityService(companyId!).getById(uid)
-        const activity = activityRes.data as CustomerCompanyActivity
-        if (activity) {
-          this.customerCompanyActivity = activity
-        }
-      } catch (error) {
-        console.error('[userAuthStore] 고객 활동 정보 동기화 실패:', error)
-      }
-    },
+    // async syncCustomerCompanyActivity() {
+    //   if(this.currentUser === null){
+    //     return
+    //   }
+    //   try {
+    //     const uid = this.currentUser!.uid
+    //     const companyId = this.customerProfile?.companyId;
+    //     if (!companyId) {
+    //       console.error('❌ companyId가 없습니다. API 호출을 중단합니다.');
+    //       return; // 여기서 멈춥니다
+    //     }
+    //     const activityRes = await createCustomerCompanyActivityService(companyId!).getById(uid)
+    //     const activity = activityRes.data as CustomerCompanyActivity
+    //     if (activity) {
+    //       this.customerCompanyActivity = activity
+    //     }
+    //   } catch (error) {
+    //     console.error('[userAuthStore] 고객 활동 정보 동기화 실패:', error)
+    //   }
+    // },
 
     async initializeAuth() {
       const auth = getAuth()
@@ -91,7 +91,11 @@ export const useUserAuthStore = defineStore('userAuth', {
           const couponStore = useCouponStore()
           await couponStore.fetchMyModifiedCoupons()
           await this.syncCustomerProfile()
-          await this.syncCustomerCompanyActivity()
+          // if (this.customerProfile?.companyId) {
+          //   await this.syncCustomerCompanyActivity()
+          // } else {
+          //   console.warn('⚠️ companyId 없음 - 활동 정보 동기화 생략')
+          // }
         } else {
           this.currentUser = null
           this.customerProfile = null

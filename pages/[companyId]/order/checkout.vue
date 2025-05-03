@@ -337,6 +337,8 @@ async function placeOrder() {
     paidAmount: 0,
     datePayment: Timestamp.fromMillis(0),
     paymentConfirmed: false,
+    dateCreatedYYYYmmdd: 0,
+    dateCreatedYYYYmm: 0
   })
 
   const clientId = companyStore.currentCompany?.nicepayConfig.clientId

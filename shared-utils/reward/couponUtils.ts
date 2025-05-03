@@ -3,7 +3,8 @@ import { type IssuedCoupon, createIssuedCoupon } from "@/shared-types/coupon/iss
 import { Timestamp } from "@/shared/firebase/firebaseTypes";
 
 /**
- * 스탬프 누적에 따라 발급 가능한 쿠폰 계산 및 생성
+ * 가장 높은 조건의 쿠폰 기준으로 스탬프 주기를 결정하고,
+ * 그 범위 내에서 조건을 만족하는 쿠폰들을 모두 발급합니다.
  */
 export function calculateAccurateCouponIssuance(
   currentStamp: number,
@@ -12,20 +13,37 @@ export function calculateAccurateCouponIssuance(
   companyId: string,
   uid: string,
   timestamp: Timestamp
-): { issuedCoupons: IssuedCoupon[]; remainingStamps: number } {
+): { issuedCoupons: IssuedCoupon[]; usedStamps: number } {
   const totalStamp = currentStamp + addedStamp;
-  const issuedCoupons: IssuedCoupon[] = [];
 
-  // 1️⃣ 가장 높은 발급 조건 기준으로 스탬프 소모 단위 계산
   const maxRequired = Math.max(...couponDefs.map(def => def.stampsRequired));
-  const b = Math.floor(totalStamp / maxRequired);
-  const remainingStamps = totalStamp % maxRequired;
+  const cycleCount = Math.floor(totalStamp / maxRequired);
+  const usedStamps = cycleCount * maxRequired;
+  const issuedCoupons: IssuedCoupon[] = [];
+  const remainder = totalStamp % maxRequired;
 
-  // 2️⃣ 각 쿠폰 조건별로 발급 가능한 수 계산
+  console.log('⏱ 스탬프 계산 정보 ------------------');
+  console.log(`✅ currentStamp: ${currentStamp}`);
+  console.log(`➕ addedStamp: ${addedStamp}`);
+  console.log(`🔁 totalStamp: ${totalStamp}`);
+  console.log(`🎯 maxRequired: ${maxRequired}`);
+  console.log(`🔄 cycleCount: ${cycleCount}`);
+  console.log(`🧾 usedStamps: ${usedStamps}`);
+  console.log('------------------------------------');
+
   for (const def of couponDefs) {
-    const prevCount = Math.floor(currentStamp / def.stampsRequired);
-    const nextCount = Math.floor(remainingStamps / def.stampsRequired);
-    const newCount = b - prevCount + nextCount;
+    const countBefore = Math.floor(currentStamp % maxRequired / def.stampsRequired);
+    const countAfter =
+      remainder === 0 && totalStamp >= def.stampsRequired
+        ? 1
+        : Math.floor(remainder / def.stampsRequired);
+
+    const newCount = cycleCount + countAfter - countBefore;
+
+    console.log(`🪙 쿠폰 ID: ${def.id}, 조건: ${def.stampsRequired}개`);
+    console.log(`📌 countBefore: ${countBefore}`);
+    console.log(`📌 countAfter: ${countAfter}`);
+    console.log(`🎉 newCount (발급 수): ${newCount}`);
 
     for (let i = 0; i < newCount; i++) {
       const issued = createIssuedCoupon(def, companyId, uid, timestamp);
@@ -33,5 +51,5 @@ export function calculateAccurateCouponIssuance(
     }
   }
 
-  return { issuedCoupons, remainingStamps };
+  return { issuedCoupons, usedStamps };
 }

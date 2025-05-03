@@ -23,6 +23,8 @@ import { computed, onMounted } from 'vue'
 import { useCartStore } from '~/stores/cart/useCartStore'
 import { useUserAuthStore } from '~/stores/userAuth/useUserAuthStore'
 import { useCouponStore } from '~/stores/coupon/useCouponStore'
+import { createSubcollectionService } from '~/services/common/subcollectionService'
+import type { CustomerCompanyActivity } from '~/shared-types/customer-company-activity/customerCompanyActivity'
 
 const router = useRouter()
 const route = useRoute()
@@ -36,7 +38,7 @@ const cartStore = useCartStore()
 const userAuthStore = useUserAuthStore()
 const couponStore = useCouponStore()
 
-onMounted(() => {
+onMounted(async () => {
   if (!isSuccess.value) return
 
   const handledKey = `paymentHandled:${orderId}`
@@ -50,7 +52,18 @@ onMounted(() => {
   sessionStorage.setItem(handledKey, 'true')
   cartStore.clearCart()
   userAuthStore.syncCustomerProfile()
-  userAuthStore.syncCustomerCompanyActivity()
+
+  const service = createSubcollectionService<CustomerCompanyActivity>(
+      'v2_companies',
+      companyId,
+      'v2_users',
+      'guest'
+    )
+    const customerCompany = await service.getOne(userAuthStore.currentUser!.uid)
+    console.log('회사 내 유저 정보:', customerCompany)
+    useUserAuthStore().customerCompanyActivity = customerCompany.data as CustomerCompanyActivity
+
+
   couponStore.fetchMyModifiedCoupons()
 })
 

@@ -1,3 +1,4 @@
+<!--📁 pages/[companyId]/mypage/address/index.vue -->
 <template>
   <div class="fixed inset-0 bg-white z-50 overflow-y-auto">
     <!-- 상단 헤더 -->

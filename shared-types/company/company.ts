@@ -84,7 +84,8 @@ export interface OrderSupport {
 }
 export interface NicepayConfig {
   clientId: string         // 예: 'R2_467b0f0a38744046be658250a9fc1074'
-  secretKey: string        // 예: 'e1c8ebd4bc964ea4bb5187bd3a65365b'
+  // secretKey: string        // 예: 'e1c8ebd4bc964ea4bb5187bd3a65365b'
+  npCred: string        // 예: 'R2_467b0f0a38744046be658250a9fc1074:e1c8ebd4bc964ea4bb5187bd3a65365b'
   useSandbox: boolean      // true = 샌드박스, false = 운영계
   cancelPassword?: string  // (선택) 결제 취소 시 필요한 비밀번호
   returnUrl?: string       // (선택) 커스터마이징된 리턴 URL
@@ -228,7 +229,7 @@ export function createEmptyCompany(): Company {
 
     nicepayConfig: {
       clientId: '',
-      secretKey: '',
+      npCred: '',
       useSandbox: true,
       cancelPassword: '',
       returnUrl: '',

@@ -1,3 +1,4 @@
+<!-- 📁 pages/[companyId]/mypage/index.vue -->
 <script setup lang="ts">
 import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
 import { useRouter } from 'vue-router'
