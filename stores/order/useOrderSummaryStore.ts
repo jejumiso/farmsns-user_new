@@ -8,6 +8,7 @@ import type { IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
 import { haversine } from '~/utils/haversine'
 
 export const useOrderSummaryStore = defineStore('orderSummary', {
+  persist: false, 
   state: () => ({
     orderSummary: {
       selectedCoupons: [], // 선택된 쿠폰들

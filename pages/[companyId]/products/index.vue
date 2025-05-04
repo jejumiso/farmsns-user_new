@@ -1,5 +1,6 @@
 <!-- 📁 pages/[companyId]/products/index.vue-->
 <template>
+  
   <div class="p-4 max-w-3xl mx-auto">
     <!-- 카테고리 버튼 -->
     <div class="flex flex-wrap gap-2 mb-4">
@@ -18,7 +19,7 @@
       </button>
     </div>
 
-    <div v-if="filteredProducts.length === 0" class="text-gray-400 text-center">
+    <div v-if="filteredProducts.length === 0" class="text-gray-600 text-center">
       상품이 없습니다.
     </div>
 
@@ -37,7 +38,8 @@
             class="w-full aspect-square object-cover rounded"
             alt="product"
           />
-          <div class="mt-2 text-sm text-center">{{ product.productName }}</div>
+          <div class="mt-2 text-base text-center text-gray-800 font-medium">{{ product.productName }}</div>
+
           <div class="mt-1 text-green-700 font-semibold text-center">
             {{ product.priceDiscounted?.toLocaleString?.() + ' 원' || '가격 미정' }}
           </div>

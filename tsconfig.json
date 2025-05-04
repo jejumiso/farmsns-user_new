@@ -19,7 +19,6 @@
     "types",
     "nuxt.d.ts",
     "globals.d.ts",
-    "**/*.vue",
-    "shims-vue.d.ts"
+    "**/*.vue"
   ]
 }

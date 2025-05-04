@@ -109,6 +109,8 @@ import { approveCardPayment } from '~/services/payment/approveCardPaymentService
 import { useCartStore } from '@/stores/cart/useCartStore'
 
 import { useRouter, useRoute } from 'vue-router'
+import type { CustomerCompanyActivity } from '~/shared-types/customer-company-activity/customerCompanyActivity'
+import { createSubcollectionService } from '~/services/common/subcollectionService'
 
 const router = useRouter()
 const route = useRoute()
@@ -153,7 +155,22 @@ const route = useRoute()
 }
 
 async function refreshCardData() {
+  if(!useUserAuthStore().currentUser || !companyStore.currentCompanyId){
+    alert('로그인 정보가 없습니다.')
+    return
+  }
+  const uid = useUserAuthStore().currentUser!.uid
+  const companyId = companyStore.currentCompanyId!
   await useUserAuthStore().syncCustomerProfile()
+  const service = createSubcollectionService<CustomerCompanyActivity>(
+      'v2_companies',
+      companyId,
+      'v2_users',
+      'guest'
+    )
+  const customerCompany = await service.getOne(uid)
+  console.log('회사 내 유저 정보:', customerCompany)
+  useUserAuthStore().customerCompanyActivity = customerCompany.data as CustomerCompanyActivity
   profile = useUserAuthStore().customerProfile
   profile2 = useUserAuthStore().customerCompanyActivity
   cards.value = Object.values(profile?.cards || {})

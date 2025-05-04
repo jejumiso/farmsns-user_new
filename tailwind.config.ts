@@ -1,6 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 const config: Config = {
+  darkMode: false, // 👉 다크모드 비활성화
   content: ['./pages/**/*.{html,js,ts,jsx,tsx,vue}', './components/**/*.{html,js,ts,jsx,tsx,vue}'],
   theme: {
     extend: {

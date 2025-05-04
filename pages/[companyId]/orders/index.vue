@@ -36,11 +36,41 @@
           </li>
         </ul>
 
-        <!-- 금액 및 상태 -->
-        <div class="flex justify-between items-center mt-2">
-          <span class="text-sm font-mono text-gray-800">
-            {{ order.finalAmount.toLocaleString() }}원
-          </span>
+        <!-- 결제 요약 -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 space-y-1">
+          <div class="grid grid-cols-2 gap-y-1">
+            <span>총 상품 금액</span>
+            <span class="text-right">{{ order.productTotalAmount.toLocaleString() }}원</span>
+            <span>쿠폰 할인</span>
+            <span class="text-right text-red-500">-{{ order.couponDiscountTotal.toLocaleString() }}원</span>
+            <span>포인트 사용</span>
+            <span class="text-right text-red-500">-{{ order.usedPoint.toLocaleString() }}P</span>
+            <span>배송비</span>
+            <span class="text-right">{{ order.deliveryFee.toLocaleString() }}원</span>
+            <span class="font-semibold">최종 결제 금액</span>
+            <span class="text-right font-bold">{{ order.finalAmount.toLocaleString() }}원</span>
+          </div>
+          <p class="text-xs text-gray-500 mt-2">결제 방식: {{ order.paymentMethod }}</p>
+
+          <!-- ✅ 무통장 입금 계좌 정보 -->
+          <div
+            v-if="order.paymentMethod === 'bank' && bankAccount"
+            class="mt-3 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-700"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span>💳 {{ bankAccount.bankName }} {{ bankAccount.accountNumber }} ({{ bankAccount.accountHolder }}) {{order.finalAmount}}</span>
+              <button
+                @click="copyBankInfo(order)"
+                class="text-xs text-blue-600 border border-blue-500 px-2 py-0.5 rounded hover:bg-blue-50"
+              >
+                복사
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 상태 뱃지 -->
+        <div class="flex justify-end">
           <span
             class="text-xs px-3 py-0.5 rounded-full font-medium"
             :class="statusBadgeClass(order.processStatus)"
@@ -57,21 +87,48 @@
   </div>
 </template>
 
-  
-  <script setup lang="ts">
-  import { ref, watch, onMounted } from 'vue'
-  import { useRoute } from 'vue-router'
-  import { format, isToday as isTodayFn, subDays, addDays } from 'date-fns'
-  import { getOrdersByDateService } from '@/services/orders/getOrdersByDateService'
-  import type { OrderToSave } from '@/shared-types/order/order'
-  import { useCompanyStore } from '@/stores/company/useCompanyStore'; // authStore 가져오기
-  const companyId = useCompanyStore().currentCompanyId
-  
-  const selectedDate = ref(new Date())
-  const orders = ref<OrderToSave[]>([])
-  
-  const isToday = (date: Date) => isTodayFn(date)
-  const formatDate = (date: Date) => format(date, 'MM월 dd일')
+<script setup lang="ts">
+import { ref, watch, onMounted, computed } from 'vue'
+import { format, isToday as isTodayFn, subDays, addDays } from 'date-fns'
+import { getOrdersByDateService } from '@/services/orders/getOrdersByDateService'
+import type { OrderToSave } from '@/shared-types/order/order'
+import { useCompanyStore } from '@/stores/company/useCompanyStore'
+
+const companyStore = useCompanyStore()
+const companyId = companyStore.currentCompanyId
+
+const selectedDate = ref(new Date())
+const orders = ref<OrderToSave[]>([])
+
+// ✅ 기본값 포함한 계좌정보
+const bankAccount = computed(() => {
+  return companyStore.currentCompany?.bankAccount ?? {
+    accountNumber: '000-0000-0000-00',
+    accountHolder: '홍길동',
+    bankName: '은행명',
+  }
+})
+
+
+
+
+
+function copyBankInfo(order: OrderToSave) {
+  const text = `${bankAccount.value.bankName} ${bankAccount.value.accountNumber} (${bankAccount.value.accountHolder}) - 입금액: ${order.finalAmount.toLocaleString()}원`
+  navigator.clipboard.writeText(text).then(() => {
+    
+    const toast = useToast()
+    console.log('toast : ',JSON.stringify(toast))
+
+    toast.add({
+      title: '복사 완료',
+      color: 'success', // ✅ 'green' 대신 'success' 사용
+    })
+  })
+}
+
+const isToday = (date: Date) => isTodayFn(date)
+const formatDate = (date: Date) => format(date, 'MM월 dd일')
 
 const formatTime = (ts: { seconds: number; nanoseconds: number } | null | undefined): string => {
   try {
@@ -83,51 +140,33 @@ const formatTime = (ts: { seconds: number; nanoseconds: number } | null | undefi
   }
 }
 
+function goToPrevDay() {
+  selectedDate.value = subDays(selectedDate.value, 1)
+}
 
-  
-  function goToPrevDay() {
-    selectedDate.value = subDays(selectedDate.value, 1)
+function goToNextDay() {
+  if (!isToday(selectedDate.value)) {
+    selectedDate.value = addDays(selectedDate.value, 1)
   }
-  
-  function goToNextDay() {
-    if (!isToday(selectedDate.value)) {
-      selectedDate.value = addDays(selectedDate.value, 1)
-    }
-  }
-  
-  function orderStatusLabel(status: OrderToSave['processStatus']) {
-    const map: Record<OrderToSave['processStatus'], string> = {
-      waitingConfirm: '접수 대기',
-      ordered: '주문 접수됨',
-      cooking: '조리 중',
-      ready: '조리 완료',
-      waitingPickup: '픽업 대기',
-      delivering: '배달 중',
-      delivered: '배달 완료',
-      completed: '완료됨',
-      cancelled: '취소됨',
-    }
-    return map[status] ?? '알 수 없음'
-  }
-  
-  async function fetchOrders() {
-    if (!companyId) {
-      console.warn('❗ 회사 ID가 없습니다.')
-      return
-    }
-    const searchDate = Number(format(selectedDate.value, 'yyyyMMdd')) // ✅ 숫자 변환 포함
+}
 
-    const res = await getOrdersByDateService(companyId, searchDate)
-    if (res.isSuccess) {
-      orders.value = res.data??[]
-    } else {
-      orders.value = []
-      console.warn('❗ 주문 불러오기 실패:', res.message)
-    }
+function orderStatusLabel(status: OrderToSave['processStatus']) {
+  const map: Record<OrderToSave['processStatus'], string> = {
+    waitingConfirm: '접수 대기',
+    ordered: '주문 접수됨',
+    cooking: '조리 중',
+    ready: '조리 완료',
+    waitingPickup: '픽업 대기',
+    delivering: '배달 중',
+    delivered: '배달 완료',
+    completed: '완료됨',
+    cancelled: '취소됨',
   }
-  function statusBadgeClass(status: OrderToSave['processStatus']) {
+  return map[status] ?? '알 수 없음'
+}
+
+function statusBadgeClass(status: OrderToSave['processStatus']) {
   const base = 'bg-gray-100 text-gray-600'
-
   const map: Record<OrderToSave['processStatus'], string> = {
     waitingConfirm: 'bg-yellow-100 text-yellow-800',
     ordered: 'bg-blue-100 text-blue-800',
@@ -139,29 +178,31 @@ const formatTime = (ts: { seconds: number; nanoseconds: number } | null | undefi
     completed: 'bg-gray-200 text-gray-800',
     cancelled: 'bg-red-100 text-red-700',
   }
-
   return map[status] || base
 }
 
 function getDisplayOrderId(id: string | undefined): string {
   if (!id) return '주문ID없음'
-
   const match = id.match(/^ord_(\d{17})_/)
-  if (match) {
-    return match[1] // 정규식 그룹으로 17자리 추출
-  }
-
-  return id.slice(0, 10) // fallback: 앞의 10자
+  if (match) return match[1]
+  return id.slice(0, 10)
 }
 
-
-  watch(selectedDate, fetchOrders)
-  onMounted(fetchOrders)
-  </script>
-  
-  <style scoped>
-  button:disabled {
-    cursor: not-allowed;
+async function fetchOrders() {
+  if (!companyId) {
+    console.warn('❗ 회사 ID가 없습니다.')
+    return
   }
-  </style>
-  
+  const searchDate = Number(format(selectedDate.value, 'yyyyMMdd'))
+  const res = await getOrdersByDateService(companyId, searchDate)
+  if (res.isSuccess) {
+    orders.value = res.data ?? []
+  } else {
+    orders.value = []
+    console.warn('❗ 주문 불러오기 실패:', res.message)
+  }
+}
+
+watch(selectedDate, fetchOrders)
+onMounted(fetchOrders)
+</script>

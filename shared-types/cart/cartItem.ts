@@ -1,3 +1,10 @@
+export interface CartItemOption {
+  optionId: string
+  optionName: string
+  selectedValue: string
+  price: number
+}
+
 export interface CartItem {
   id: number
   productId: string
@@ -8,14 +15,10 @@ export interface CartItem {
   image: string
   rewardStamp: number
   rewardPoint: number
-  rewardExcludedQuantity: number // ✅ 추가
-  options: {
-    optionId: string
-    optionName: string
-    selectedValue: string
-    price: number
-  }[]
+  rewardExcludedQuantity: number
+  options: CartItemOption[]
 }
+
 
 export interface ProcessedOrderItem {
   productId: string

@@ -25,6 +25,7 @@ import { useUserAuthStore } from '~/stores/userAuth/useUserAuthStore'
 import { useCouponStore } from '~/stores/coupon/useCouponStore'
 import { createSubcollectionService } from '~/services/common/subcollectionService'
 import type { CustomerCompanyActivity } from '~/shared-types/customer-company-activity/customerCompanyActivity'
+import { useOrderSummaryStore } from '@/stores/order/useOrderSummaryStore'
 
 const router = useRouter()
 const route = useRoute()
@@ -37,7 +38,7 @@ const isSuccess = computed(() => !!orderId)
 const cartStore = useCartStore()
 const userAuthStore = useUserAuthStore()
 const couponStore = useCouponStore()
-
+const orderSummaryStore = useOrderSummaryStore()
 onMounted(async () => {
   if (!isSuccess.value) return
 
@@ -51,20 +52,22 @@ onMounted(async () => {
   // ✅ 최초 진입 시에만 처리
   sessionStorage.setItem(handledKey, 'true')
   cartStore.clearCart()
-  userAuthStore.syncCustomerProfile()
+  // userAuthStore.syncCustomerProfile()
 
-  const service = createSubcollectionService<CustomerCompanyActivity>(
-      'v2_companies',
-      companyId,
-      'v2_users',
-      'guest'
-    )
-    const customerCompany = await service.getOne(userAuthStore.currentUser!.uid)
-    console.log('회사 내 유저 정보:', customerCompany)
-    useUserAuthStore().customerCompanyActivity = customerCompany.data as CustomerCompanyActivity
+  orderSummaryStore.$reset()
+
+  // const service = createSubcollectionService<CustomerCompanyActivity>(
+  //     'v2_companies',
+  //     companyId,
+  //     'v2_users',
+  //     'guest'
+  //   )
+    // const customerCompany = await service.getOne(userAuthStore.currentUser!.uid)
+    // console.log('회사 내 유저 정보:', customerCompany)
+    // useUserAuthStore().customerCompanyActivity = customerCompany.data as CustomerCompanyActivity
 
 
-  couponStore.fetchMyModifiedCoupons()
+  // couponStore.fetchMyModifiedCoupons()
 })
 
 function goToOrderList() {

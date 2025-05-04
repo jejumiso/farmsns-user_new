@@ -91,6 +91,12 @@ export interface NicepayConfig {
   returnUrl?: string       // (선택) 커스터마이징된 리턴 URL
 }
 
+export interface BankAccount {
+  bankName: string        // 예: '신한은행'
+  accountNumber: string   // 예: '110-123-456789'
+  accountHolder: string   // 예: '홍길동'
+}
+
 
 export interface Company {
   id: string
@@ -119,6 +125,9 @@ export interface Company {
 
   // 주문 지원
   orderSupport: OrderSupport
+
+  bankAccount: BankAccount
+
 
   // 적립 정책
   rewardPolicy: RewardPolicy
@@ -196,6 +205,11 @@ export function createEmptyCompany(): Company {
       supportDineIn: false,
       supportDelivery: false,
       supportParcel: false,
+    },
+    bankAccount: {
+      bankName: '',
+      accountNumber: '',
+      accountHolder: '',
     },
 
 

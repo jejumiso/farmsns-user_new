@@ -1,47 +1,35 @@
-<!-- layouts/default.vue -->
 <template>
-  <div class="min-h-screen pb-16 bg-white">
-    <!-- 콘텐츠 영역 -->
-    <NuxtPage />
+  <div class="min-h-screen flex flex-col">
+    <div class="flex-1 overflow-y-auto pb-20">
+      <!-- 콘텐츠 영역 -->
+      <NuxtPage />
+    </div>
 
     <!-- ✅ 하단 고정 네비게이션 (특정 경로에서는 숨김) -->
     <nav
-      v-if="!isFullModalPage"
-      class="fixed bottom-0 left-0 right-0 bg-white border-t shadow-sm z-50"
+  v-if="!isFullModalPage"
+  class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50"
+>
+<ul class="flex text-xs text-gray-400">
+  <li v-for="item in navItems" :key="item.to" class="flex-1">
+    <NuxtLink
+      :to="`/${companyId}${item.to}`"
+      class="flex flex-col items-center justify-center gap-0.5 py-2 px-3 w-full h-full transition"
+      :class="(
+        isActive(item.to)
+          ? 'bg-green-600 text-white font-bold shadow-md'
+          : 'hover:text-white'
+      )"
     >
-      <ul class="flex justify-around text-sm text-gray-600">
-        <li>
-          <NuxtLink
-            :to="`/${companyId}`"
-            class="flex flex-col items-center justify-center py-2"
-            :class="{ 'text-green-600 font-bold': isActive('') }"
-          >
-            <span>🏠</span>
-            <span>홈</span>
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink
-            :to="`/${companyId}/orders`"
-            class="flex flex-col items-center justify-center py-2"
-            :class="{ 'text-green-600 font-bold': isActive('/orders') }"
-          >
-            <span>📦</span>
-            <span>주문내역</span>
-          </NuxtLink>
-        </li>
-        <li>
-          <NuxtLink
-            :to="`/${companyId}/mypage`"
-            class="flex flex-col items-center justify-center py-2"
-            :class="{ 'text-green-600 font-bold': isActive('/mypage') }"
-          >
-            <span>👤</span>
-            <span>MY</span>
-          </NuxtLink>
-        </li>
-      </ul>
-    </nav>
+      <span class="text-xl">{{ item.icon }}</span>
+      <span class="text-[11px]">{{ item.label }}</span>
+    </NuxtLink>
+  </li>
+</ul>
+
+</nav>
+
+
   </div>
 </template>
 
@@ -54,7 +42,7 @@ import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
 const route = useRoute()
 const authStore = useUserAuthStore()
 
-const companyId = computed(() => route.params.companyId as string || ''); // 👈 companyId를 computed로 관리
+const companyId = computed(() => route.params.companyId as string || '')
 
 watch(
   () => [route.params.companyId, authStore.currentUser?.uid],
@@ -67,26 +55,22 @@ watch(
   { immediate: true }
 )
 
+const navItems = [
+  { to: '/products', icon: '🏠', label: '홈' },
+  { to: '/orders', icon: '📦', label: '주문내역' },
+  { to: '/mypage', icon: '👤', label: 'MY' },
+]
+
 function isActive(path: string) {
-  return route.path.endsWith(path)
+  return route.path.startsWith(`/${companyId.value}${path}`)
 }
 
-// ✅ 하단 네비게이션을 숨길 경로 조건
 const isFullModalPage = computed(() => {
   const segments = route.path.split('/').filter(Boolean)
-
-  if (segments.includes('products') && segments.length > segments.indexOf('products') + 1) {
-    return true
-  }
-
-  if (segments.includes('cart') || segments.includes('order')) {
-    return true
-  }
-
-  if (segments.includes('mypage') && segments.includes('address')) {
-    return true
-  }
-
+  if (segments.includes('products') && segments.length > segments.indexOf('products') + 1) return true
+  if (segments.includes('cart') || segments.includes('order')) return true
+  if (segments.includes('mypage') && segments.includes('address')) return true
   return false
 })
 </script>
+
