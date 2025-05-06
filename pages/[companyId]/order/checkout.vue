@@ -212,9 +212,11 @@ const companyId = companyStore.currentCompanyId
 const filteredCoupons = computed(() => {
   if (!companyId) return []
   return coupons.value.filter(coupon =>
-    coupon.issuingCompanyId === companyId || (coupon.availableCompanyIds?.includes(companyId))
+    (coupon.status === 'active') &&
+    (coupon.issuingCompanyId === companyId || (coupon.availableCompanyIds?.includes(companyId)))
   )
 })
+
 
 const couponDiscount = computed(() => optimizer.calculateCouponDiscountForSelected())
 const useMaxPoint = ref(false)

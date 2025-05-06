@@ -82,21 +82,30 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
     updateDistanceAndDeliveryFee() {
       const selectedAddress = this.orderSummary.selectedAddress
       const companyGeoPoint = useCompanyStore().currentCompany?.businessInfo.geoPoint
-
-      if (!selectedAddress || !companyGeoPoint) {
+      console.log(JSON.stringify(useCompanyStore().currentCompany?.businessInfo))
+    
+      console.log('📦 [거리계산] selectedAddress:', selectedAddress)
+      console.log('🏢 [거리계산] companyGeoPoint:', companyGeoPoint)
+    
+      if (!selectedAddress || !selectedAddress.geoPoint || !companyGeoPoint) {
+        console.warn('⚠️ 거리계산 불가: 배송지나 매장 위치 정보 누락')
         this.orderSummary.distance = null
         this.orderSummary.deliveryFee = 0
         return
       }
-
+    
       const distance = haversine(
         [companyGeoPoint.latitude, companyGeoPoint.longitude],
         [selectedAddress.geoPoint.latitude, selectedAddress.geoPoint.longitude]
       )
-
+      
+      this.orderSummary.distance = distance
+      console.log(`📏 [거리계산] 거리: ${(distance as number).toFixed(2)}m`)
+    
       this.orderSummary.distance = distance
       this.updateDeliveryFee()
     },
+    
 
     // 배송비 계산
     updateDeliveryFee() {

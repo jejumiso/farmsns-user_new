@@ -3,6 +3,16 @@ import type { Timestamp } from "@/shared/firebase/firebaseTypes";
 import { type Channel } from "./couponDefinition";
 import type { CouponDefinition } from "./couponDefinition";
 
+
+export type CouponUsageLog = {
+  type: 'requested' | 'approved' | 'cancelled' | 'used'
+  by: string          // 사용자 또는 관리자 ID
+  dateLogged: Timestamp
+  note?: string       // (선택) 메모, 주문 ID, 사유 등
+}
+
+
+
 /**
  * 쿠폰 사용 내역
  */
@@ -21,7 +31,7 @@ interface BaseIssuedCoupon {
   couponDefinitionId: string;     // 원본 쿠폰 정의 ID
   couponName: string;             // 쿠폰 이름
   eventName: string;              // 이벤트 이름
-  status: 'active' | 'used' | 'expired';
+  status: 'active' | 'used' | 'expired' | 'requested' | 'cancelled'
   issuingCompanyId: string;       // 발급 회사 ID
   whereToUse: Channel;            // 사용 가능한 채널
   couponUsage: CouponUsage[];     // 사용 기록
@@ -29,6 +39,8 @@ interface BaseIssuedCoupon {
   availableBrandNames?: string[];
   availableProductIds?: string[];
   availableCategoryIds?: string[];
+  usageLog: CouponUsageLog[]
+
   memo?: string;
   dateIssuedyyyy: number;
   dateIssuedyyyyMM: number;
@@ -98,6 +110,7 @@ export function createIssuedCoupon(
     availableBrandNames: [],
     availableProductIds: def.availableProductIds,
     availableCategoryIds: def.availableCategoryIds,
+    usageLog: [],
     memo: def.memo,
     dateIssued: issuedAt,
     dateIssuedyyyy: yyyy,

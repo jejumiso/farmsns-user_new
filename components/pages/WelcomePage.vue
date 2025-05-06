@@ -19,10 +19,10 @@
 </template>
 
 <script setup>
-import { useAuthStore } from '@/stores/auth/useAuthStore'; // authStore 가져오기
+import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'; // authStore 가져오기
 import { navigateTo } from '#app'; // Nuxt의 navigateTo 함수 가져오기
 
-const authStore = useAuthStore(); // authStore 인스턴스 생성
+const authStore = useUserAuthStore(); // authStore 인스턴스 생성
 
 const buttonText = computed(() =>
   authStore.user ? '대시보드로 이동' : '로그인 페이지로 이동'

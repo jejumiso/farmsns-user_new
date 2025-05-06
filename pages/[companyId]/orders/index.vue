@@ -23,66 +23,75 @@
         :key="order.id"
         class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-3"
       >
-        <!-- 주문 헤더 -->
+        <!-- 헤더 -->
         <div class="flex justify-between items-center text-sm text-gray-600">
-          <span class="font-semibold text-gray-800">#{{ getDisplayOrderId(order.id) }}</span>
+          <span class="font-semibold text-gray-800">주문번호 : {{ getDisplayOrderId(order.id) }}</span>
           <span class="text-xs">{{ formatTime(order.dateCreated) }}</span>
         </div>
 
-        <!-- 상품 목록 -->
+        <!-- 상품 -->
         <ul class="text-sm text-gray-700 space-y-1 pl-4 list-disc">
           <li v-for="item in order.orderItems" :key="item.productId">
             {{ item.productName }} × {{ item.quantity }}
           </li>
         </ul>
-        <!-- 리워드 적립 정보 -->
-<div class="mt-2 text-sm text-green-700" v-if="order.rewardPointPlanned || order.rewardStampPlanned">
-  <p v-if="order.rewardPointPlanned > 0">🎁 포인트 적립: {{ order.rewardPointPlanned.toLocaleString() }}P</p>
-  <p v-if="order.rewardStampPlanned > 0">🎟️ 스탬프 적립: {{ order.rewardStampPlanned }}개</p>
-</div>
 
+        <!-- 리워드 -->
+        <div
+          class="bg-green-50 border border-green-200 rounded-md p-3 text-sm text-green-800"
+          v-if="order.rewardPointPlanned || order.rewardStampPlanned"
+        >
+          <p class="font-semibold mb-1">🎉 리워드 적립 완료</p>
+          <p v-if="order.rewardPointPlanned > 0">• 포인트: {{ order.rewardPointPlanned.toLocaleString() }}P</p>
+          <p v-if="order.rewardStampPlanned > 0">• 스탬프: {{ order.rewardStampPlanned }}개</p>
+        </div>
 
-<!-- 결제 요약 -->
-<div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 space-y-1">
-  <div class="grid grid-cols-2 gap-y-1">
-    <span>총 상품 금액</span>
-    <span class="text-right">{{ order.productTotalAmount.toLocaleString() }}원</span>
-    <span>쿠폰 할인</span>
-    <span class="text-right text-red-500">-{{ order.couponDiscountTotal.toLocaleString() }}원</span>
-    <span>포인트 사용</span>
-    <span class="text-right text-red-500">-{{ order.usedPoint.toLocaleString() }}P</span>
-    <span>배송비</span>
-    <span class="text-right">{{ order.deliveryFee.toLocaleString() }}원</span>
-    <span class="font-semibold">최종 결제 금액</span>
-    <span class="text-right font-bold">{{ order.finalAmount.toLocaleString() }}원</span>
-  </div>
+        <!-- 결제 요약 -->
+        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 space-y-1">
+          <div class="grid grid-cols-2 gap-y-1">
+            <span>총 상품 금액</span>
+            <span class="text-right">{{ order.productTotalAmount.toLocaleString() }}원</span>
+            <span>쿠폰 할인</span>
+            <span class="text-right text-red-500">-{{ order.couponDiscountTotal.toLocaleString() }}원</span>
+            <span>포인트 사용</span>
+            <span class="text-right text-red-500">-{{ order.usedPoint.toLocaleString() }}P</span>
+            <span>배송비</span>
+            <span class="text-right">{{ order.deliveryFee.toLocaleString() }}원</span>
+            <span class="font-semibold">최종 결제 금액</span>
+            <span class="text-right font-bold text-black">{{ order.finalAmount.toLocaleString() }}원</span>
+          </div>
 
-  <p class="text-xs text-gray-500 mt-2">
-  결제 방식: {{ order.paymentMethod }}
-  <span v-if="order.pgPaidAmount && order.pgPaidAmount > 0"  class="text-sm text-blue-600">
-         : {{ order.pgPaidAmount.toLocaleString() }}원
-      </span>
+          <p class="text-xs text-gray-500 mt-2">
+            결제 방식: {{ order.paymentMethod }}
+            <span
+              v-if="order.pgPaidAmount && order.pgPaidAmount > 0"
+              class="text-sm text-blue-600"
+            >
+              : {{ order.pgPaidAmount.toLocaleString() }}원
+            </span>
+          </p>
 
-</p>
+          <!-- 무통장 계좌 정보 -->
+          <div
+            v-if="order.paymentMethod === 'bank' && bankAccount"
+            class="mt-3 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-700"
+          >
+            <div class="flex items-center justify-between gap-2">
+              <span>
+                💳 {{ bankAccount.bankName }} {{ bankAccount.accountNumber }}
+                ({{ bankAccount.accountHolder }})
+              </span>
+              <button
+                @click="copyBankInfo(order)"
+                class="text-xs text-blue-600 border border-blue-500 px-2 py-0.5 rounded hover:bg-blue-50"
+              >
+                복사
+              </button>
+            </div>
+          </div>
+        </div>
 
-  <!-- 무통장 입금 계좌 정보 -->
-  <div
-    v-if="order.paymentMethod === 'bank' && bankAccount"
-    class="mt-3 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-700"
-  >
-    <div class="flex items-center justify-between gap-2">
-      <span>💳 {{ bankAccount.bankName }} {{ bankAccount.accountNumber }} ({{ bankAccount.accountHolder }}) {{ order.finalAmount }}</span>
-      <button
-        @click="copyBankInfo(order)"
-        class="text-xs text-blue-600 border border-blue-500 px-2 py-0.5 rounded hover:bg-blue-50"
-      >
-        복사
-      </button>
-    </div>
-  </div>
-</div>
-
-        <!-- 상태 뱃지 -->
+        <!-- 상태 -->
         <div class="flex justify-end">
           <span
             class="text-xs px-3 py-0.5 rounded-full font-medium"
@@ -94,6 +103,7 @@
       </div>
     </div>
 
+    <!-- 비어있을 때 -->
     <div v-else class="text-center text-gray-400 mt-16 text-sm">
       📭 주문 내역이 없습니다.
     </div>

@@ -57,7 +57,7 @@ export const useCouponStore = defineStore('couponStore', {
         console.log('[fetchMyModifiedCoupons] 가져온 쿠폰 수:', updatedCoupons.length)
     
         // 🎯 [임시 처리] status === 'active'인 쿠폰만 사용
-        const activeCoupons = updatedCoupons.filter(coupon => coupon.status === 'active')
+        const activeCoupons = updatedCoupons.filter(coupon => coupon.status === 'active' || coupon.status === 'requested')
     
         console.log('[fetchMyModifiedCoupons] 사용 가능한 쿠폰 수:', activeCoupons.length)
     

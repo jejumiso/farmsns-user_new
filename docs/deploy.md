@@ -7,6 +7,7 @@
 * Firebase CLI 설치 필요
 
 ---
+npm run generate && firebase deploy
 
 ### ✅ 1. Nuxt 설정 (`nuxt.config.ts`)
 

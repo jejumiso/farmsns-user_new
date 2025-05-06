@@ -130,7 +130,7 @@
 import { ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { HomeIcon, PencilIcon, PowerIcon, ShareIcon, RocketLaunchIcon, WrenchIcon } from '@heroicons/vue/24/outline';
-import { useAuthStore } from '@/stores/auth/useAuthStore';
+import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore';
 import { useProductStore } from '@/stores/product/useProductStore'
 import { useCategoryStore } from '@/stores/category/useCategoryStore'
 import { useOptionStore } from '@/stores/option/useOptionStore'
@@ -139,7 +139,7 @@ import { useOptionGroupStore } from '@/stores/option-group/useOptionGroupStore'
 import { clearCompanyCache } from '@/utils/companyCache'
 
 function resetStores() {
-  const companyId = useAuthStore().currentCompany?.id
+  const companyId = useUserAuthStore().currentCompany?.id
   if (!companyId) return
 
   const productStore = useProductStore()

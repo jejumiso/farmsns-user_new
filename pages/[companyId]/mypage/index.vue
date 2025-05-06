@@ -36,17 +36,31 @@
         <span class="text-blue-600">{{ authStore.customerCompanyActivity?.stampRemaining ?? 0 }}개</span>
       </div>
 
-      <div class="flex justify-between font-semibold text-base">
-      <!-- 🎟️ 보유 쿠폰 -->
-      <button
-        @click="goToCouponPage"
-        class="flex justify-between items-center w-full font-semibold text-base text-purple-600 hover:bg-purple-50 rounded-md px-2 py-1 transition"
-      >
-        <span>🎟️ 보유 쿠폰</span>
-        <span>{{ couponStore.coupons.length ?? 0 }}장</span>
-      </button>
 
-      </div>
+      <div
+  class="bg-purple-50 border border-purple-300 rounded-xl p-4 flex items-center justify-between shadow hover:shadow-md transition cursor-pointer"
+  @click="goToCouponPage"
+>
+  <!-- 왼쪽: 텍스트 정보 -->
+  <div class="space-y-1">
+    <p class="text-sm text-purple-600 font-medium">🎟️ 보유 쿠폰 {{ couponStore.coupons.length }}장</p>
+    <p class="text-2xl font-bold text-purple-800">
+      
+    </p>
+    <p class="text-xs text-gray-500">쿠폰 확인 및 사용요청 하러 가기</p>
+  </div>
+
+  <!-- 오른쪽: 화살표 아이콘 느낌 -->
+  <div class="text-purple-600 text-lg font-semibold">
+    ➔
+  </div>
+</div>
+
+
+
+
+      
+
     </div>
 
     <div class="text-center">
