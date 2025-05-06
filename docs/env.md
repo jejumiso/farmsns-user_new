@@ -6,3 +6,7 @@ API_BASE_URL=http://127.0.0.1:5001/farmsns-main/asia-northeast3/api
 PAYMENT_RETURN_URL=http://127.0.0.1:5001/farmsns-main/asia-northeast3/api/api/payment/complete
 ENCRYPTION_KEY=QRvUJwa5cIubaa9QHLahkizjCNyKfC76
 ENCRYPTION_IV=QU83jDdX2PrZNL7k
+
+
+API_BASE_URL=https://api-3p3ezvtrga-du.a.run.app
+PAYMENT_RETURN_URL=https://api-3p3ezvtrga-du.a.run.app/api/payment/complete

@@ -60,7 +60,7 @@ import { getImageUrl } from '@/utils/getImageUrl'
 
 const cartStore = useCartStore()
 const items = cartStore.items
-const totalFinalPrice = cartStore.totalFinalPrice
+const totalFinalPrice = cartStore.cartTotalWithOptions
 const totalOriginalPrice = cartStore.totalOriginalPrice
 
 const router = useRouter()

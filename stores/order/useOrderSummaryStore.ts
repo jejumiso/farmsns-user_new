@@ -24,7 +24,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
 
   getters: {
     cartItems: () => useCartStore().items, // useCartStore에서 items를 참조
-    cartTotal: () => useCartStore().cartTotal, // useCartStore에서 cartTotal을 참조
+    cartTotal: () => useCartStore().cartTotalBase, // useCartStore에서 cartTotal을 참조
   },
 
   actions: {

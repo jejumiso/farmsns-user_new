@@ -12,13 +12,13 @@ export const useCartStore = defineStore('cart', {
   persist: true,
 
   getters: {
-    cartTotal: (state) =>
+    cartTotalBase: (state) =>
       state.items.reduce((sum, item) => sum + item.priceDiscounted * item.quantity, 0),
 
     totalQuantity: (state) =>
       state.items.reduce((sum, item) => sum + item.quantity, 0),
 
-    totalFinalPrice: (state) =>
+    cartTotalWithOptions: (state) =>
       state.items.reduce(
         (sum, item) =>
           sum +

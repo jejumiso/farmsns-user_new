@@ -29,10 +29,18 @@
           <span class="text-xs">{{ formatTime(order.dateCreated) }}</span>
         </div>
 
-        <!-- 상품 -->
-        <ul class="text-sm text-gray-700 space-y-1 pl-4 list-disc">
+        <!-- 상품 + 옵션 -->
+        <ul class="text-sm text-gray-700 space-y-2 pl-4 list-disc">
           <li v-for="item in order.orderItems" :key="item.productId">
-            {{ item.productName }} × {{ item.quantity }}
+            <div>
+              {{ item.productName }} × {{ item.quantity }}
+              <div
+                v-if="item.options && item.options.length"
+                class="text-xs text-gray-500 ml-2 mt-0.5"
+              >
+                옵션: {{ item.options.map(opt => opt.selectedValue).join(', ') }}
+              </div>
+            </div>
           </li>
         </ul>
 
@@ -50,7 +58,7 @@
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 space-y-1">
           <div class="grid grid-cols-2 gap-y-1">
             <span>총 상품 금액</span>
-            <span class="text-right">{{ order.productTotalAmount.toLocaleString() }}원</span>
+            <span class="text-right">{{ order.cartTotalWithOptions.toLocaleString() }}원</span>
             <span>쿠폰 할인</span>
             <span class="text-right text-red-500">-{{ order.couponDiscountTotal.toLocaleString() }}원</span>
             <span>포인트 사용</span>
@@ -109,6 +117,7 @@
     </div>
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { ref, watch, onMounted, computed } from 'vue'

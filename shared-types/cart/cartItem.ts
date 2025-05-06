@@ -20,6 +20,15 @@ export interface CartItem {
 }
 
 
+// export interface OrderItemOption {
+//   optionId: string
+//   optionName: string
+//   selectedValue: string
+//   price: number
+// }
+
+
+
 export interface ProcessedOrderItem {
   productId: string
   productName: string
@@ -29,6 +38,6 @@ export interface ProcessedOrderItem {
   rewardPoint: number
   rewardStamp: number
   quantity: number
-  options: any // 타입 명확히 정의 가능
+  options: CartItemOption[]  // 타입 명확히 정의 가능
 }
 

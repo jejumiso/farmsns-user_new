@@ -16,7 +16,7 @@ export const useCouponOptimizer = defineStore('couponOptimizer', () => {
 
   const selectedCoupons = computed(() => orderSummaryStore.orderSummary.selectedCoupons)
   const availableCoupons = computed(() => couponStore.availableCoupons)
-  const cartTotal = computed(() => cartStore.cartTotal)
+  const cartTotal = computed(() => cartStore.cartTotalBase)
 
   // ✅ 장바구니 총액에서 쿠폰 할인 적용 후 금액 계산
   const calculateTotalWithCoupons = (coupons: IssuedCoupon[]) => {

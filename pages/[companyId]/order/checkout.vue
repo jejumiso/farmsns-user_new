@@ -58,7 +58,7 @@
         </div>
 
         <div class="text-right mt-4 text-sm">
-          <p>채 상품금액: {{ cartTotal.toLocaleString() }}원</p>
+          <p>채 상품금액: {{ cartTotalWithOptions.toLocaleString() }}원</p>
           <p>쿠폰 할인: -{{ couponDiscount.toLocaleString() }}원</p>
           <p>포인트 사용: -{{ usedPointInput.toLocaleString() }}원</p>
           <div v-if="selectedMethod === 'delivery'">
@@ -226,7 +226,7 @@ watch(useMaxPoint, (newVal) => {
 })
 
 const cartItems = computed(() => cartStore.items)
-const cartTotal = computed(() => cartStore.cartTotal)
+const cartTotalWithOptions = computed(() => cartStore.cartTotalWithOptions)
 const rewardPointPlanned = computed(() =>
   cartItems.value.reduce((sum, item) => sum + (item.quantity - item.rewardExcludedQuantity) * item.rewardPoint, 0)
 )
@@ -267,7 +267,7 @@ const selectedCoupons = computed(() => orderSummaryStore.orderSummary.selectedCo
 const usableCoupons = computed(() => optimizer.usableCoupons)
 
 const finalAmount = computed(() =>
-  Math.max(0, cartTotal.value - couponDiscount.value + deliveryFee.value - usedPointInput.value)
+  Math.max(0, cartTotalWithOptions.value + deliveryFee.value - couponDiscount.value  - usedPointInput.value)
 )
 
 const paymentMethod = computed({
@@ -299,7 +299,7 @@ function toggleCoupon(coupon: IssuedCoupon) {
 
 function recalculateUsedPoint() {
   if (useMaxPoint.value) {
-    const afterCouponAmount = Math.max(0, cartTotal.value + deliveryFee.value - couponDiscount.value)
+    const afterCouponAmount = Math.max(0, cartTotalWithOptions.value + deliveryFee.value - couponDiscount.value)
     usedPointInput.value = Math.min(afterCouponAmount, availablePoint.value)
     orderSummaryStore.updateOrderSummary({ usedPoint: usedPointInput.value })
   } else {
@@ -343,7 +343,8 @@ async function placeOrder() {
       processStatus: 'waitingConfirm',
       dateCreated: now,
       dateModified: now,
-      productTotalAmount: cartStore.cartTotal,
+      cartTotalBase: cartStore.cartTotalBase,
+      cartTotalWithOptions: cartStore.cartTotalWithOptions,
       couponDiscountTotal: optimizer.calculateCouponDiscountForSelected(),
       finalAmount: finalAmount.value,
       deliveryFee: orderSummaryStore.orderSummary.deliveryFee,
@@ -359,6 +360,7 @@ async function placeOrder() {
       dateCreatedYYYYmm: yyyymm,
       pgPaidAmount: 0,
       paymentLogs: [],
+      
     }
 
     const clientSnapshot = {

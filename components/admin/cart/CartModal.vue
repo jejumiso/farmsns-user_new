@@ -55,7 +55,7 @@
           정가 총액: ₩{{ cart.totalOriginalPrice.toLocaleString() }}
         </div>
         <div class="text-right text-lg font-bold text-green-700">
-          결제 총액: ₩{{ cart.totalFinalPrice.toLocaleString() }}
+          결제 총액: ₩{{ cart.cartTotalWithOptions.toLocaleString() }}
         </div>
 
         <button
