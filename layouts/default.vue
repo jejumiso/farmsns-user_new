@@ -7,29 +7,26 @@
 
     <!-- ✅ 하단 고정 네비게이션 (특정 경로에서는 숨김) -->
     <nav
-  v-if="!isFullModalPage"
-  class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50"
->
-<ul class="flex text-xs text-gray-400">
-  <li v-for="item in navItems" :key="item.to" class="flex-1">
-    <NuxtLink
-      :to="`/${companyId}${item.to}`"
-      class="flex flex-col items-center justify-center gap-0.5 py-2 px-3 w-full h-full transition"
-      :class="(
-        isActive(item.to)
-          ? 'bg-green-600 text-white font-bold shadow-md'
-          : 'hover:text-white'
-      )"
+      v-if="!isFullModalPage"
+      class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50"
     >
-      <span class="text-xl">{{ item.icon }}</span>
-      <span class="text-[11px]">{{ item.label }}</span>
-    </NuxtLink>
-  </li>
-</ul>
-
-</nav>
-
-
+      <ul class="flex text-xs text-gray-400">
+        <li v-for="item in navItems" :key="item.to" class="flex-1">
+          <NuxtLink
+            :to="`/${companyId}${item.to}`"
+            class="flex flex-col items-center justify-center gap-0.5 py-2 px-3 w-full h-full transition"
+            :class="(
+              isActive(item.to)
+                ? 'bg-green-600 text-white font-bold shadow-md'
+                : 'hover:text-white'
+            )"
+          >
+            <span class="text-xl leading-none">{{ item.icon }}</span>
+            <span class="text-[11px]">{{ item.label }}</span>
+          </NuxtLink>
+        </li>
+      </ul>
+    </nav>
   </div>
 </template>
 
@@ -55,10 +52,11 @@ watch(
   { immediate: true }
 )
 
+// ✅ 이모지 기반 메뉴 구성
 const navItems = [
-  { to: '/products', icon: '🏠', label: '홈' },
-  { to: '/orders', icon: '📦', label: '주문내역' },
-  { to: '/mypage', icon: '👤', label: 'MY' },
+  { to: '/products', icon: '🎁', label: '상품목록' },
+  { to: '/orders', icon: '🚚', label: '주문내역' },
+  { to: '/mypage', icon: '🙋', label: 'MY' },
 ]
 
 function isActive(path: string) {
@@ -73,4 +71,3 @@ const isFullModalPage = computed(() => {
   return false
 })
 </script>
-

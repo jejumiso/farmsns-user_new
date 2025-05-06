@@ -24,7 +24,17 @@ export type ProcessStatus =
   | 'completed'      // 최종 완료
   | 'cancelled'      // 주문 취소
 
+  interface PaymentLog {
+    tid: string
+    type: 'approved' | 'cancelled' | 'failed'
+    method: 'card' | 'naverpay' | 'kakaopay' | 'easy'
+    amount: number
+    dateProcessed: Timestamp
+    reason?: string // 취소 사유 등
+  }
+  
 
+  
   export interface Order {
     id?: string // 주문 ID (firestore id 등)
     
@@ -56,11 +66,16 @@ export type ProcessStatus =
     rewardStampPlanned: number // 예정 스탬프
     customerMemo: string 
 
+
+
     dateCreatedYYYYmmdd: number // 주문 생성 시각 (YYYYMMDD)
     dateCreatedYYYYmm: number // 주문 생성 시각 (YYYYMM)
     
   
     // ✅ 결제 요약 정보 추가
+    pgPaidAmount : number // PG사에 결제 요청된 금액 (누적 잔액)
+    paymentLogs: PaymentLog[] // 결제 시도/승인/취소 로그 목록
+
     paidAmount: number // 실제 결제된 금액 (누적 잔액)
     datePayment: Timestamp // 가장 최근 결제 완료 시각
     paymentConfirmed: boolean // 결제 완료 여부 (성공한 경우만 true)

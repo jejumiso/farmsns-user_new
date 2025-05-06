@@ -32,11 +32,8 @@ export function calculateAccurateCouponIssuance(
   console.log('------------------------------------');
 
   for (const def of couponDefs) {
-    const countBefore = Math.floor(currentStamp % maxRequired / def.stampsRequired);
-    const countAfter =
-      remainder === 0 && totalStamp >= def.stampsRequired
-        ? 1
-        : Math.floor(remainder / def.stampsRequired);
+    const countBefore = currentStamp >= def.stampsRequired ? 1 : 0;
+    const countAfter = remainder >= def.stampsRequired ? 1 : 0;
 
     const newCount = cycleCount + countAfter - countBefore;
 

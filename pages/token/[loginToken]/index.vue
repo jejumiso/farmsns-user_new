@@ -1,3 +1,15 @@
+<!-- 📁 pages/token/[loginToken]/]index.vue -->
+
+<template>
+  <div class="flex min-h-screen items-center justify-center bg-white">
+    <div class="text-center space-y-4">
+      <div class="w-8 h-8 border-4 border-gray-300 border-t-blue-500 rounded-full animate-spin mx-auto" />
+      <p class="text-gray-700 text-lg font-medium">로딩 중입니다...</p>
+    </div>
+  </div>
+</template>
+
+
 <script setup lang="ts">
 import { onMounted }            from 'vue'
 import { useRoute, useRouter }  from 'vue-router'
@@ -7,6 +19,10 @@ import { useUserAuthStore }     from '@/stores/userAuth/useUserAuthStore'
 import type { ApiResponse }     from '@/shared-types/apiResponse'
 import type { CustomerProfile } from '~/shared-types/customer-profile/customerProfile'
 import type { CustomerCompanyActivity } from '~/shared-types/customer-company-activity/customerCompanyActivity'
+
+definePageMeta({
+  layout: false,
+})
 
 interface LoginResult {
   customToken: string
@@ -38,6 +54,7 @@ onMounted(async () => {
     }
 
     console.log('커스텀 토큰 : ',res.data.customToken)
+    console.log('커스텀 회사 ID : ',res.data.companyId)
 
     const cred = await signInWithCustomToken($firebaseAuth, res.data.customToken)
         .catch((error) => {
@@ -47,7 +64,7 @@ onMounted(async () => {
           console.error('에러 상세:', error);
           throw error; // 기존 catch로 던지게
         });
-    const target = res.data.customerCompanyActivity
+    const target = res.data.companyId
       ? `/${res.data.companyId}/products`
       : `/`
     router.replace(target)
@@ -61,8 +78,14 @@ onMounted(async () => {
 
 </script>
 
-<template>
-  <div class="p-6 text-center text-lg">
-    자동 로그인 중입니다…
-  </div>
-</template>
+
+<style scoped>
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+</style>

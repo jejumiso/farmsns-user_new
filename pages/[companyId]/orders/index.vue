@@ -35,39 +35,52 @@
             {{ item.productName }} × {{ item.quantity }}
           </li>
         </ul>
+        <!-- 리워드 적립 정보 -->
+<div class="mt-2 text-sm text-green-700" v-if="order.rewardPointPlanned || order.rewardStampPlanned">
+  <p v-if="order.rewardPointPlanned > 0">🎁 포인트 적립: {{ order.rewardPointPlanned.toLocaleString() }}P</p>
+  <p v-if="order.rewardStampPlanned > 0">🎟️ 스탬프 적립: {{ order.rewardStampPlanned }}개</p>
+</div>
 
-        <!-- 결제 요약 -->
-        <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 space-y-1">
-          <div class="grid grid-cols-2 gap-y-1">
-            <span>총 상품 금액</span>
-            <span class="text-right">{{ order.productTotalAmount.toLocaleString() }}원</span>
-            <span>쿠폰 할인</span>
-            <span class="text-right text-red-500">-{{ order.couponDiscountTotal.toLocaleString() }}원</span>
-            <span>포인트 사용</span>
-            <span class="text-right text-red-500">-{{ order.usedPoint.toLocaleString() }}P</span>
-            <span>배송비</span>
-            <span class="text-right">{{ order.deliveryFee.toLocaleString() }}원</span>
-            <span class="font-semibold">최종 결제 금액</span>
-            <span class="text-right font-bold">{{ order.finalAmount.toLocaleString() }}원</span>
-          </div>
-          <p class="text-xs text-gray-500 mt-2">결제 방식: {{ order.paymentMethod }}</p>
 
-          <!-- ✅ 무통장 입금 계좌 정보 -->
-          <div
-            v-if="order.paymentMethod === 'bank' && bankAccount"
-            class="mt-3 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-700"
-          >
-            <div class="flex items-center justify-between gap-2">
-              <span>💳 {{ bankAccount.bankName }} {{ bankAccount.accountNumber }} ({{ bankAccount.accountHolder }}) {{order.finalAmount}}</span>
-              <button
-                @click="copyBankInfo(order)"
-                class="text-xs text-blue-600 border border-blue-500 px-2 py-0.5 rounded hover:bg-blue-50"
-              >
-                복사
-              </button>
-            </div>
-          </div>
-        </div>
+<!-- 결제 요약 -->
+<div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 space-y-1">
+  <div class="grid grid-cols-2 gap-y-1">
+    <span>총 상품 금액</span>
+    <span class="text-right">{{ order.productTotalAmount.toLocaleString() }}원</span>
+    <span>쿠폰 할인</span>
+    <span class="text-right text-red-500">-{{ order.couponDiscountTotal.toLocaleString() }}원</span>
+    <span>포인트 사용</span>
+    <span class="text-right text-red-500">-{{ order.usedPoint.toLocaleString() }}P</span>
+    <span>배송비</span>
+    <span class="text-right">{{ order.deliveryFee.toLocaleString() }}원</span>
+    <span class="font-semibold">최종 결제 금액</span>
+    <span class="text-right font-bold">{{ order.finalAmount.toLocaleString() }}원</span>
+  </div>
+
+  <p class="text-xs text-gray-500 mt-2">
+  결제 방식: {{ order.paymentMethod }}
+  <span v-if="order.pgPaidAmount && order.pgPaidAmount > 0"  class="text-sm text-blue-600">
+         : {{ order.pgPaidAmount.toLocaleString() }}원
+      </span>
+
+</p>
+
+  <!-- 무통장 입금 계좌 정보 -->
+  <div
+    v-if="order.paymentMethod === 'bank' && bankAccount"
+    class="mt-3 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-700"
+  >
+    <div class="flex items-center justify-between gap-2">
+      <span>💳 {{ bankAccount.bankName }} {{ bankAccount.accountNumber }} ({{ bankAccount.accountHolder }}) {{ order.finalAmount }}</span>
+      <button
+        @click="copyBankInfo(order)"
+        class="text-xs text-blue-600 border border-blue-500 px-2 py-0.5 rounded hover:bg-blue-50"
+      >
+        복사
+      </button>
+    </div>
+  </div>
+</div>
 
         <!-- 상태 뱃지 -->
         <div class="flex justify-end">
@@ -93,6 +106,7 @@ import { format, isToday as isTodayFn, subDays, addDays } from 'date-fns'
 import { getOrdersByDateService } from '@/services/orders/getOrdersByDateService'
 import type { OrderToSave } from '@/shared-types/order/order'
 import { useCompanyStore } from '@/stores/company/useCompanyStore'
+import { useApi } from '~/composables/useApi'
 
 const companyStore = useCompanyStore()
 const companyId = companyStore.currentCompanyId
@@ -109,7 +123,30 @@ const bankAccount = computed(() => {
   }
 })
 
+async function openReceipt(order: OrderToSave) {
+  const tid = order.paymentLogs?.find(p => p.type === 'approved')?.tid
+  const companyId = order.companyId
 
+  if (!tid || !companyId) {
+    alert('영수증 정보를 찾을 수 없습니다.')
+    return
+  }
+
+  try {
+    const { data } = await useApi().get('/api/payment/receipt-url', {
+      params: { tid, companyId },
+    })
+
+    if (data.isSuccess && data.receiptUrl) {
+      window.open(data.receiptUrl, '_blank')
+    } else {
+      alert('영수증 URL을 가져오지 못했습니다.')
+    }
+  } catch (error) {
+    console.error('📛 영수증 API 호출 실패:', error)
+    alert('영수증 확인 중 오류가 발생했습니다.')
+  }
+}
 
 
 

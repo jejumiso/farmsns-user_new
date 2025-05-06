@@ -52,22 +52,25 @@ onMounted(async () => {
   // ✅ 최초 진입 시에만 처리
   sessionStorage.setItem(handledKey, 'true')
   cartStore.clearCart()
-  // userAuthStore.syncCustomerProfile()
+  userAuthStore.syncCustomerProfile()
 
   orderSummaryStore.$reset()
+  if (!userAuthStore.currentUser?.uid) {
+    return
+  }
 
-  // const service = createSubcollectionService<CustomerCompanyActivity>(
-  //     'v2_companies',
-  //     companyId,
-  //     'v2_users',
-  //     'guest'
-  //   )
-    // const customerCompany = await service.getOne(userAuthStore.currentUser!.uid)
-    // console.log('회사 내 유저 정보:', customerCompany)
-    // useUserAuthStore().customerCompanyActivity = customerCompany.data as CustomerCompanyActivity
+  const service = createSubcollectionService<CustomerCompanyActivity>(
+      'v2_companies',
+      companyId,
+      'v2_users',
+      'guest'
+    )
+    const customerCompany = await service.getOne(userAuthStore.currentUser!.uid)
+    console.log('회사 내 유저 정보:', customerCompany)
+    useUserAuthStore().customerCompanyActivity = customerCompany.data as CustomerCompanyActivity
 
 
-  // couponStore.fetchMyModifiedCoupons()
+  couponStore.fetchMyModifiedCoupons()
 })
 
 function goToOrderList() {

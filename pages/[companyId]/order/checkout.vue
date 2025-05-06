@@ -134,12 +134,14 @@
 
       <div class="sticky bottom-0 bg-white p-4 z-10">
         <button
-          @click="placeOrder"
-          class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700"
-          type="button"
-        >
-          주문하기
-        </button>
+  @click="placeOrder"
+  :disabled="isPlacingOrder"
+  class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+  type="button"
+>
+  주문하기
+</button>
+
       </div>
 
       <CardSliderModal
@@ -169,6 +171,7 @@ import CardSliderModal from '@/components/payment/CardSliderModal.vue'
 import type { IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
 import { Timestamp } from '~/shared/firebase/firebaseTypes'
 import type { Order } from '~/shared-types/order/order'
+import { format } from 'date-fns'
 
 declare global {
   interface Window {
@@ -305,74 +308,101 @@ function recalculateUsedPoint() {
 function goToAddressManage() {
   router.push('/mypage/address')
 }
+const isPlacingOrder = ref(false)
 
 async function placeOrder() {
-  if (!companyStore.currentCompanyId) return alert('회사를 선택해주세요.')
-  if (!userAuthStore.currentUser?.uid) return alert('로그인 후 주문해주세요.')
-  if (cartStore.items.length === 0) return alert('장바구니에 상품이 없습니다.')
+  if (isPlacingOrder.value) return
+  isPlacingOrder.value = true
 
-  const orderService = createOrderService()
-  if (finalAmount.value === 0) {
-    orderSummaryStore.updateOrderSummary({ paymentMethod: 'zeropay' })
-  }
+  try {
+    if (!companyStore.currentCompanyId) return alert('회사를 선택해주세요.')
+    if (!userAuthStore.currentUser?.uid) return alert('로그인 후 주문해주세요.')
+    if (cartStore.items.length === 0) return alert('장바구니에 상품이 없습니다.')
 
-  const res = await orderService.placeOrder(companyStore.currentCompanyId, {
-    ...orderSummaryStore.orderSummary,
-    cartItems: cartStore.items,
-    selectedCoupons: orderSummaryStore.orderSummary.selectedCoupons.map(c => ({ ...c, usedAmount: c.usedAmount ?? 0 })),
-    paymentMethod: orderSummaryStore.orderSummary.paymentMethod as Order['paymentMethod'],
-    selectedMethod: orderSummaryStore.orderSummary.selectedMethod as Order['selectedMethod'],
-    companyId: companyStore.currentCompanyId,
-    customerId: userAuthStore.currentUser?.uid!,
-    orderStatus: 'pending',
-    processStatus: 'waitingConfirm',
-    dateCreated: Timestamp.now(),
-    dateModified: Timestamp.now(),
-    productTotalAmount: cartStore.cartTotal,
-    couponDiscountTotal: optimizer.calculateCouponDiscountForSelected(),
-    finalAmount: finalAmount.value,
-    deliveryFee: orderSummaryStore.orderSummary.deliveryFee,
-    distance: orderSummaryStore.orderSummary.distance ?? 0,
-    selectedAddress: orderSummaryStore.orderSummary.selectedAddress!,
-    customerMemo: orderSummaryStore.orderSummary.customerMemo ?? '',
-    rewardPointPlanned: rewardPointPlanned.value,
-    rewardStampPlanned: rewardStampPlanned.value,
-    paidAmount: 0,
-    datePayment: Timestamp.fromMillis(0),
-    paymentConfirmed: false,
-    dateCreatedYYYYmmdd: 0,
-    dateCreatedYYYYmm: 0
-  })
-
-  const clientId = companyStore.currentCompany?.nicepayConfig.clientId
-  if (!clientId) return alert('결제 서비스 설정이 필요합니다.')
-
-  if (res.isSuccess && res.data) {
-    
-    
-    tempOrderId.value = res.data.id
-    if (orderSummaryStore.orderSummary.paymentMethod === 'easy') {
-      showCardSlider.value = true
-      return
+    const orderService = createOrderService()
+    if (finalAmount.value === 0) {
+      orderSummaryStore.updateOrderSummary({ paymentMethod: 'zeropay' })
     }
-    const isZeroPayLike = ['onsite', 'bank', 'zeropay'].includes(orderSummaryStore.orderSummary.paymentMethod)
-    if (isZeroPayLike) {
-      orderSummaryStore.$reset() 
-      router.push(`/${companyId}/payment/complete?orderId=${res.data.id}`)
+
+    const now = Timestamp.now()
+    const today = new Date()
+    const yyyymmdd = Number(format(today, 'yyyyMMdd'))
+    const yyyymm = Number(format(today, 'yyyyMM'))
+
+    const order: Order = {
+      ...orderSummaryStore.orderSummary,
+      cartItems: cartStore.items,
+      selectedCoupons: orderSummaryStore.orderSummary.selectedCoupons.map(c => ({ ...c, usedAmount: c.usedAmount ?? 0 })),
+      paymentMethod: orderSummaryStore.orderSummary.paymentMethod as Order['paymentMethod'],
+      selectedMethod: orderSummaryStore.orderSummary.selectedMethod as Order['selectedMethod'],
+      companyId: companyStore.currentCompanyId,
+      customerId: userAuthStore.currentUser.uid,
+      orderStatus: 'pending',
+      processStatus: 'waitingConfirm',
+      dateCreated: now,
+      dateModified: now,
+      productTotalAmount: cartStore.cartTotal,
+      couponDiscountTotal: optimizer.calculateCouponDiscountForSelected(),
+      finalAmount: finalAmount.value,
+      deliveryFee: orderSummaryStore.orderSummary.deliveryFee,
+      distance: orderSummaryStore.orderSummary.distance ?? 0,
+      selectedAddress: orderSummaryStore.orderSummary.selectedAddress!,
+      customerMemo: orderSummaryStore.orderSummary.customerMemo ?? '',
+      rewardPointPlanned: rewardPointPlanned.value,
+      rewardStampPlanned: rewardStampPlanned.value,
+      paidAmount: 0,
+      datePayment: Timestamp.fromMillis(0),
+      paymentConfirmed: false,
+      dateCreatedYYYYmmdd: yyyymmdd,
+      dateCreatedYYYYmm: yyyymm,
+      pgPaidAmount: 0,
+      paymentLogs: [],
+    }
+
+    const clientSnapshot = {
+      customerCompanyActivity: {
+        pointRemaining: userAuthStore.customerCompanyActivity?.pointRemaining ?? 0,
+        stampRemaining: userAuthStore.customerCompanyActivity?.stampRemaining ?? 0,
+      },
+    }
+
+    const res = await orderService.placeOrder(companyStore.currentCompanyId, order, clientSnapshot)
+
+    const clientId = companyStore.currentCompany?.nicepayConfig.clientId
+    if (!clientId) return alert('결제 서비스 설정이 필요합니다.')
+
+    if (res.isSuccess && res.data) {
+      tempOrderId.value = res.data.id
+
+      if (orderSummaryStore.orderSummary.paymentMethod === 'easy') {
+        showCardSlider.value = true
+        return
+      }
+      const isZeroPayLike = ['onsite', 'bank', 'zeropay'].includes(orderSummaryStore.orderSummary.paymentMethod)
+      if (isZeroPayLike) {
+        orderSummaryStore.$reset()
+        router.push(`/${companyStore.currentCompanyId}/payment/complete?orderId=${res.data.id}`)
+      } else {
+        serverAuth({
+          orderId: res.data.id,
+          amount: finalAmount.value,
+          clientId: clientId,
+          method: orderSummaryStore.orderSummary.paymentMethod,
+        })
+      }
     } else {
-      const paymentMethod = orderSummaryStore.orderSummary.paymentMethod
-      orderSummaryStore.$reset() 
-      serverAuth({
-        orderId: res.data.id,
-        amount: finalAmount.value,
-        clientId: clientId,
-        method: paymentMethod,
-      })
+      alert('주문 실패: ' + (res.message || '알 수 없는 오류'))
     }
-  } else {
-    alert('주문 실패: ' + (res.message || '알 수 없는 오류'))
+
+  } catch (e) {
+    console.error('❌ 주문 처리 중 오류:', e)
+    alert('주문 처리 중 오류가 발생했습니다.')
+  } finally {
+    isPlacingOrder.value = false
   }
 }
+
+
 
 type PaymentParams = {
   orderId: string
