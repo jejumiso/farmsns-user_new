@@ -15,9 +15,12 @@
         ›
       </button>
     </div>
-
+    <!-- 로딩 중 -->
+    <div v-if="isLoading" class="text-center mt-16 text-sm text-gray-500">
+      ⏳ 주문 내역을 불러오는 중입니다...
+    </div>
     <!-- 주문 목록 -->
-    <div v-if="orders.length" class="space-y-5">
+    <div v-else-if="orders.length" class="space-y-5">
       <div
         v-for="order in orders"
         :key="order.id"
@@ -244,18 +247,28 @@ function getDisplayOrderId(id: string | undefined): string {
   return id.slice(0, 10)
 }
 
+
+const isLoading = ref(false)
+
 async function fetchOrders() {
   if (!companyId) {
     console.warn('❗ 회사 ID가 없습니다.')
     return
   }
+
+  isLoading.value = true
   const searchDate = Number(format(selectedDate.value, 'yyyyMMdd'))
-  const res = await getOrdersByDateService(companyId, searchDate)
-  if (res.isSuccess) {
-    orders.value = res.data ?? []
-  } else {
-    orders.value = []
-    console.warn('❗ 주문 불러오기 실패:', res.message)
+
+  try {
+    const res = await getOrdersByDateService(companyId, searchDate)
+    if (res.isSuccess) {
+      orders.value = res.data ?? []
+    } else {
+      orders.value = []
+      console.warn('❗ 주문 불러오기 실패:', res.message)
+    }
+  } finally {
+    isLoading.value = false
   }
 }
 

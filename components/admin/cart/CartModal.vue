@@ -44,18 +44,18 @@
 
               <!-- ✅ 리워드 스탬프, 포인트 표시 -->
               <div class="mt-2 text-xs text-blue-600">
-                <span v-if="item.rewardStamp > 0">🟠 구매 시 {{ item.rewardStamp }} 스탬프 제공</span>
-                <span v-if="item.rewardPoint > 0" class="ml-2">💎 구매 시 {{ item.rewardPoint }} 포인트 제공</span>
+                <span v-if="item.rewardStamp > 0">🟠 {{ item.rewardStamp * item.quantity  }} 스탬프 제공</span>
+                <span v-if="item.rewardPoint > 0" class="ml-2">💎 {{ item.rewardPoint * item.quantity  }} 포인트 제공</span>
               </div>
             </div>
           </div>
         </div>
 
-        <div class="text-right text-sm text-gray-500 mt-4">
+        <!-- <div class="text-right text-sm text-gray-500 mt-4">
           정가 총액: ₩{{ cart.totalOriginalPrice.toLocaleString() }}
-        </div>
+        </div> -->
         <div class="text-right text-lg font-bold text-green-700">
-          결제 총액: ₩{{ cart.cartTotalWithOptions.toLocaleString() }}
+          {{ cart.cartTotalWithOptions.toLocaleString() }} 원
         </div>
 
         <button

@@ -4,31 +4,39 @@
     <h1 class="text-2xl font-bold text-center text-gray-800">🙋 마이페이지</h1>
 
     <div class="bg-white rounded-xl shadow-md p-6 space-y-3 text-sm text-gray-700">
-      <div class="flex justify-between">
+      <!-- <div class="flex justify-between">
         <span class="font-medium text-gray-600">👤 이름</span>
         <span>{{ authStore.customerName || '알 수 없음' }}</span>
-      </div>
+      </div> -->
+
+      <!-- <div class="flex justify-between">
+        <span class="font-medium text-gray-600">📞 전화번호</span>
+        <span>{{ phoneNumber }}</span>
+      </div> -->
 
       <div class="flex justify-between">
-        <span class="font-medium text-gray-600">📞 전화번호</span>
-        <span>010-{{ phoneNumber }}</span>
+        <span class="font-medium text-gray-600">🔑 고객ID</span>
+        <span :title="authStore.currentUser?.uid">
+          {{ authStore.currentUser?.uid.slice(0, 10) }}
+        </span>
       </div>
+
 
       <div class="flex justify-between">
         <span class="font-medium text-gray-600">📦 총 주문 수</span>
         <span>{{ authStore.customerProfile?.orderTotalCount ?? 0 }}건</span>
       </div>
 
-      <div class="flex justify-between">
+      <!-- <div class="flex justify-between">
         <span class="font-medium text-gray-600">🌟 등급</span>
         <span>{{ authStore.customerProfile?.customerRating || '없음' }}</span>
-      </div>
+      </div> -->
 
       <hr />
 
       <div class="flex justify-between font-semibold text-base">
-        <span>💰 보유 머니</span>
-        <span class="text-green-600">{{ authStore.customerCompanyActivity?.pointRemaining ?? 0 }}P</span>
+        <span>💰 보유 포인트</span>
+        <span class="text-green-600">{{ authStore.customerCompanyActivity?.pointRemaining.toLocaleString() ?? 0 }} P</span>
       </div>
 
       <div class="flex justify-between font-semibold text-base">
@@ -100,7 +108,7 @@ const goToCouponPage = () => {
 const profile = computed(() => authStore.customerProfile) // ✅ 변경
 
 
-const phoneNumber = ref<string>('복호화 전')
+const phoneNumber = ref<string>('암호화 해지중...')
 
 
 watch(
@@ -108,7 +116,7 @@ watch(
   (encrypted) => {
     const iv = profile.value?.iv
     if (encrypted && iv) {
-      phoneNumber.value = decryptWithIv(encrypted, iv) || '복호화 실패'
+      phoneNumber.value = '010-' + decryptWithIv(encrypted, iv) || '복호화 실패'
     }
   },
   { immediate: true }

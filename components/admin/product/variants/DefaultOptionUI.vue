@@ -1,7 +1,7 @@
 <template>
   <div class="space-y-2">
     <!-- 옵션 이름 -->
-    <p class="font-bold text-green-800 text-lg">{{ option.optionName }}</p>
+    <!-- <p class="font-bold text-green-800 text-lg">{{ option.optionName }}</p> -->
 
     <!-- SELECT -->
     <div v-if="option.type === 'select'" class="grid grid-cols-2 gap-3">
@@ -21,7 +21,7 @@
           v-if="option.optionItemsPrice[i] > 0"
           class="block text-sm text-gray-500 font-normal"
         >
-          (+₩{{ option.optionItemsPrice[i].toLocaleString() }})
+          ({{ option.optionItemsPrice[i].toLocaleString() }} 원)
         </span>
       </button>
     </div>

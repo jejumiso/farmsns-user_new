@@ -1,6 +1,6 @@
 <template>
     <div class="space-y-2">
-      <p class="font-bold text-green-800 text-lg">{{ option.optionName }}</p>
+      <!-- <p class="font-bold text-red-800 text-lg">{{ option.optionName }}</p> -->
   
       <div v-if="option.type === 'select'" class="grid grid-cols-2 gap-3">
         <button
