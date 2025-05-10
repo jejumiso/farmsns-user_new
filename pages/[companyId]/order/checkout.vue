@@ -172,6 +172,7 @@ import type { IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
 import { Timestamp } from '~/shared/firebase/firebaseTypes'
 import type { Order } from '~/shared-types/order/order'
 import { format } from 'date-fns'
+import type { UserSummary } from '~/shared-types/user/userSummary'
 
 declare global {
   interface Window {
@@ -331,14 +332,27 @@ async function placeOrder() {
     const yyyymmdd = Number(format(today, 'yyyyMMdd'))
     const yyyymm = Number(format(today, 'yyyyMM'))
 
+    const userSummary : UserSummary = {
+      uid: '',
+      securedUserName: '',
+      securedPhoneMain: '',
+      phoneSuffix: '',
+      memoAdmin: '',
+      orderTotalCount: 0,
+      stampCount: 0,
+      pointCount: 0,
+      iv: ''
+    }
+
     const order: Order = {
       ...orderSummaryStore.orderSummary,
+      userSummary,
       cartItems: cartStore.items,
       selectedCoupons: orderSummaryStore.orderSummary.selectedCoupons.map(c => ({ ...c, usedAmount: c.usedAmount ?? 0 })),
       paymentMethod: orderSummaryStore.orderSummary.paymentMethod as Order['paymentMethod'],
       selectedMethod: orderSummaryStore.orderSummary.selectedMethod as Order['selectedMethod'],
       companyId: companyStore.currentCompanyId,
-      customerId: userAuthStore.currentUser.uid,
+      uid: userAuthStore.currentUser.uid,
       orderStatus: 'pending',
       processStatus: 'waitingConfirm',
       dateCreated: now,

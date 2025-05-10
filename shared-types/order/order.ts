@@ -2,9 +2,10 @@ import type { CartItem, ProcessedOrderItem } from '@/shared-types/cart/cartItem'
 import type { IssuedCoupon } from '@/shared-types/coupon/issuedCoupon'
 import type { DeliveryAddress } from '../delivery-address/deliveryAddress'
 import type { Timestamp } from '@/shared/firebase/firebaseTypes'
+import type { UserSummary } from '../user/userSummary'
 
 // types/orderStatus.ts
-type OrderStatus =
+export type OrderStatus =
   | 'pending'              // 주문 생성됨
   | 'paymentProcessing'    // 결제 시도 중
   | 'completed'            // 결제 및 주문 완료
@@ -39,7 +40,8 @@ export type ProcessStatus =
     id?: string // 주문 ID (firestore id 등)
     
     companyId: string // 주문한 회사 ID
-    customerId: string // 주문한 고객 ID
+    uid: string // 주문한 고객 ID
+    userSummary: UserSummary // ✅ 사용자 요약 정보 포함
   
     cartItems: CartItem[] // 장바구니 상품 목록
     selectedCoupons: IssuedCoupon[] // 선택한 쿠폰들

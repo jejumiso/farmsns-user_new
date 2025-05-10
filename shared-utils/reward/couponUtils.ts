@@ -1,5 +1,7 @@
 import { type CouponDefinition } from "@/shared-types/coupon/couponDefinition";
 import { type IssuedCoupon, createIssuedCoupon } from "@/shared-types/coupon/issuedCoupon";
+import { type CustomerProfile } from "@/shared-types/customer-profile/customerProfile";
+import { type UserSummary } from "@/shared-types/user/userSummary";
 import { Timestamp } from "@/shared/firebase/firebaseTypes";
 
 /**
@@ -11,7 +13,7 @@ export function calculateAccurateCouponIssuance(
   addedStamp: number,
   couponDefs: CouponDefinition[],
   companyId: string,
-  uid: string,
+  userSummary: UserSummary,
   timestamp: Timestamp
 ): { issuedCoupons: IssuedCoupon[]; usedStamps: number } {
   const totalStamp = currentStamp + addedStamp;
@@ -43,7 +45,7 @@ export function calculateAccurateCouponIssuance(
     console.log(`🎉 newCount (발급 수): ${newCount}`);
 
     for (let i = 0; i < newCount; i++) {
-      const issued = createIssuedCoupon(def, companyId, uid, timestamp);
+      const issued = createIssuedCoupon(def, companyId, userSummary, timestamp);
       issuedCoupons.push(issued);
     }
   }

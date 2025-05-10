@@ -26,9 +26,9 @@
 
       <!-- 상품명/가격 -->
       <h1 class="text-xl font-bold text-center text-gray-800">{{ product?.productName }}</h1>
-      <p class="text-center text-lg text-green-600 font-semibold">
+      <!-- <p class="text-center text-lg text-green-600 font-semibold">
         {{ product?.priceDiscounted?.toLocaleString() }}원
-      </p>
+      </p> -->
 
       <!-- 옵션 선택 -->
       <ProductOptions

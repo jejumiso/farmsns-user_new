@@ -1,3 +1,4 @@
+// 📁 composables/useApi.ts
 import { useCookie, useRequestHeaders } from '#app'
 import axios from 'axios'
 import { useNuxtApp } from '#app' // 👈 이거 추가
