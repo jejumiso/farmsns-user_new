@@ -1,5 +1,6 @@
 <!-- 📁 pages/[companyId]/products/index.vue-->
 <template>
+  <!-- {{ productStore.items[0] }}개 상품 -->
   
   <div class="p-4 max-w-3xl mx-auto">
     <!-- 카테고리 버튼 -->

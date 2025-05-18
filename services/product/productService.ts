@@ -13,7 +13,11 @@ export function createProductService(mode: 'admin'|'guest') {
     },
 
     async getModified(companyId: string, since: number) {
-      return await documentService.getAll(companyId, since)
+      console.log('상품 목록 얻기', companyId, since)
+      // return await documentService.getAll(companyId, since)
+      var result = await documentService.getAll(companyId, since)
+      console.log('상품 목록 얻기 결과 :: ', result.data?.length)
+      return result;
     },
 
     async getById(companyId: string, itemId: string) {

@@ -1,5 +1,6 @@
 // shared-types/company/company.ts
 import { Timestamp, GeoPoint, DocumentReference } from '@/shared/firebase/firebaseTypes'
+import  { CompanyType } from './companyType';
 
 export interface DeliveryConfig {
   baseFee: number;            // 기본 배송비
@@ -98,8 +99,14 @@ export interface BankAccount {
 }
 
 
+
+
 export interface Company {
   id: string
+
+  companyType: CompanyType; // ✅ 명확하게 연결
+
+
 
 
   // 소속 관계
@@ -161,6 +168,8 @@ export function createEmptyCompany(): Company {
 
   return {
     id: '',
+
+    companyType: CompanyType.OFFLINE_STORE, // 기본값으로 'OFFLINE_STORE' 설정
 
 
     companyParentRef: null,

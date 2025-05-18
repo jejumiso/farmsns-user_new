@@ -24,6 +24,7 @@ export interface CustomerCompanyActivity {
   shopMoney: number
   orderTotalCount: number
   orderTotalPrice: number
+  memoAdmin : string // 관리자 메모
   bids: {
     [cardId: string]: CardBidInfo
   }
@@ -61,6 +62,7 @@ export function createEmptyCustomerCompanyActivity(params: {
     shopMoney: 0,
     orderTotalCount: 0,
     orderTotalPrice: 0,
+    memoAdmin: '',
 
     bids: {},
 

@@ -37,12 +37,12 @@ export function createAuthService() {
 
         console.log('response:', response);
         console.log('status:', response.status);
-        if (!response.data?.customToken) {
+        if (!response.data?.data.customToken) {
           throw new Error('서버 응답에 customToken이 없습니다');
         }
 
 
-        const { customToken } = response.data;
+        const { customToken } = response.data.data;
 
         console.log('SMS 인증 성공 ',customToken);
         const userCredential = await signInWithCustomToken(auth, customToken);

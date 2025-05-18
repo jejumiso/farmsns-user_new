@@ -44,7 +44,16 @@ export function setCompanyCache<T>(type: string, companyId: string, data: T) {
     updatedAt: Date.now(),
   }
 
-  localStorage.setItem(key, JSON.stringify(wrapped))
+  console.log('setCompanyCache', key, wrapped)
+  // 캐시가 없으면 새로 저장
+
+  try {
+    localStorage.setItem(key, JSON.stringify(wrapped))
+    console.log('✅ 캐시 저장 성공:', key)
+  } catch (e) {
+    console.warn('❌ 캐시 저장 실패:', key, e)
+  }
+
 }
 
 /**

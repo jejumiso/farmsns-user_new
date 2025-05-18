@@ -1,3 +1,4 @@
+// 📁 shared-types\order\order.ts
 import type { CartItem, ProcessedOrderItem } from '@/shared-types/cart/cartItem'
 import type { IssuedCoupon } from '@/shared-types/coupon/issuedCoupon'
 import type { DeliveryAddress } from '../delivery-address/deliveryAddress'
@@ -34,10 +35,23 @@ export type ProcessStatus =
     reason?: string // 취소 사유 등
   }
   
+  export type OrderChannel = 
+  | 'web'          // 웹사이트, 모바일 웹
+  | 'kiosk'        // 키오스크, 포스기
+  | 'admin'        // 매장 직원 수기입력
+  | 'phone'        // 전화 주문
+  | 'deliveryApp'  // 배달앱 주문 (배민, 요기요 등)
+  | 'etc'          // 기타
+
+  
 
   
   export interface Order {
     id?: string // 주문 ID (firestore id 등)
+
+    orderChannel: OrderChannel // 'kiosk', 'web' 등
+    terminalId: string         // ✅ (kiosk일 때만) 사용되는 장비 ID
+
     
     companyId: string // 주문한 회사 ID
     uid: string // 주문한 고객 ID

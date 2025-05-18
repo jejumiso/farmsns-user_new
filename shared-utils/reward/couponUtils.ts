@@ -1,3 +1,4 @@
+// 📁 functions\src\shared-utils\reward\couponUtils.ts
 import { type CouponDefinition } from "@/shared-types/coupon/couponDefinition";
 import { type IssuedCoupon, createIssuedCoupon } from "@/shared-types/coupon/issuedCoupon";
 import { type CustomerProfile } from "@/shared-types/customer-profile/customerProfile";

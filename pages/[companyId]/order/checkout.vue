@@ -374,7 +374,8 @@ async function placeOrder() {
       dateCreatedYYYYmm: yyyymm,
       pgPaidAmount: 0,
       paymentLogs: [],
-      
+      orderChannel: 'web',
+      terminalId: ''
     }
 
     const clientSnapshot = {

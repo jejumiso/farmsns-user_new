@@ -22,6 +22,7 @@ export interface CustomerProfile {
   orderTotalPrice: number // 총 주문 금액
   rewardCount: number // 리워드 횟수
   rewardCompany: string // 리워드 지급 업체
+  memoAdmin: string // 관리자 메모  ?? 필요없겠는데..
   coupons: IssuedCoupon[]
   version: number // 데이터 구조 버전
   cards: {
@@ -69,6 +70,7 @@ export function createEmptyCustomerProfile(params: {
     orderTotalPrice: 0,
     rewardCount: 0,
     rewardCompany: '',
+    memoAdmin:'',
     coupons: [],
     version: 1,
     cards: {},
