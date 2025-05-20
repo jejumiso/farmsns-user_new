@@ -1,63 +1,79 @@
 <!-- 📁 pages/[companyId]/products/index.vue-->
 <template>
-  <!-- {{ productStore.items[0] }}개 상품 -->
-  
-  <div class="p-4 max-w-3xl mx-auto">
-    <!-- 카테고리 버튼 -->
-    <div class="flex flex-wrap gap-2 mb-4">
+  <div class="p-4 max-w-3xl mx-auto space-y-6 bg-white pb-0">
+
+    <!-- 카테고리 필터 -->
+    <div class="flex flex-wrap gap-2 justify-center">
       <button
         v-for="cat in categories"
         :key="cat.id"
         @click="viewStore.setCategory(cat.id)"
         :class="[
-          'px-3 py-1 border rounded-full text-sm',
+          'px-4 py-1.5 text-sm font-medium rounded-full transition-all border shadow-sm',
           viewStore.selectedCategoryId === cat.id
-            ? 'bg-green-600 text-white'
-            : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            ? 'bg-green-600 text-white border-green-600'
+            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
         ]"
       >
         {{ cat.categoryName }}
       </button>
     </div>
 
-    <div v-if="filteredProducts.length === 0" class="text-gray-600 text-center">
-      상품이 없습니다.
+    <!-- 영업 상태 안내 -->
+    <div
+      class="rounded-lg px-4 py-3 text-sm text-center shadow-sm border font-medium"
+      :class="companyStore.currentCompany?.isOpen
+        ? 'bg-green-50 text-green-700 border-green-100'
+        : 'bg-gray-100 text-gray-500 border-gray-200'"
+    >
+      {{ companyStore.currentCompany?.isOpen
+        ? '✅ 영업중입니다. 많은 이용 부탁드립니다!'
+        : '⛔️ 영업이 종료되었습니다. 내일 다시 뵐게요 😊' }}
     </div>
 
+    <!-- 상품 없음 안내 -->
+    <div v-if="filteredProducts.length === 0" class="text-center text-gray-500 text-sm">
+      상품이 없습니다 🥲
+    </div>
+
+    <!-- 상품 목록 3열 -->
     <div class="grid grid-cols-3 gap-4">
-      <div
+      <NuxtLink
         v-for="product in filteredProducts"
         :key="product.id"
-        class="flex flex-col items-center"
+        :to="`/${companyId}/products/${product.id}`"
+        class="bg-white rounded-xl shadow-sm overflow-hidden flex flex-col items-center"
       >
-        <NuxtLink
-          :to="`/${companyId}/products/${product.id}`"
-          class="flex flex-col items-center"
-        >
+        <div class="w-full aspect-square">
           <img
             :src="getImageUrl(product.imageThumbnailFileName)"
-            class="w-full aspect-square object-cover rounded"
+            class="w-full h-full object-cover"
             alt="product"
           />
-          <div class="mt-2 text-base text-center text-gray-800 font-medium">{{ product.productName }}</div>
-
-          <div class="mt-1 text-green-700 font-semibold text-center">
-            {{ product.priceDiscounted?.toLocaleString?.() + ' 원' || '가격 미정' }}
+        </div>
+        <div class="p-2 w-full text-center">
+          <div class="text-xs font-semibold text-gray-800 truncate">
+            {{ product.productName }}
           </div>
-        </NuxtLink>
-      </div>
+          <div class="text-xs font-bold text-green-600 mt-1">
+            {{ product.priceDiscounted?.toLocaleString?.() + '원' || '가격 미정' }}
+          </div>
+        </div>
+      </NuxtLink>
     </div>
 
-    <!-- 🛒 하단 장바구니 버튼 -->
-    <NuxtLink
-      :to="`/${companyId}/cart`"
-      class="fixed bottom-20 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-sm px-4 py-2 rounded-full shadow-lg z-50"
-    >
-      <span v-if="cartCount > 0">🛒 장바구니에 {{ cartCount }}개 담김 - 바로가기</span>
-      <span v-else>🛒 장바구니가 비어있어요</span>
-    </NuxtLink>
+<!-- 상품 목록 페이지 하단 장바구니 버튼 -->
+<NuxtLink
+  :to="`/${companyId}/cart`"
+  class="fixed bottom-[65px] left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-green-600 text-white text-sm font-medium px-6 py-3 rounded-full shadow-xl z-40 text-center"
+>
+  <span v-if="cartCount > 0">🛒 {{ cartCount }}개 담김 - 장바구니 보기</span>
+  <span v-else>🛒 장바구니가 비어있어요</span>
+</NuxtLink>
+
   </div>
 </template>
+
 
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
@@ -67,6 +83,10 @@ import { useCategoryStore } from '@/stores/category/useCategoryStore'
 import { useProductListViewStore } from '@/stores/view/products/useListViewStore'
 import { useCartStore } from '@/stores/cart/useCartStore'
 import { STORAGE_BASE_URL } from '@/shared-constants/constants'
+
+  import { useCompanyStore } from '@/stores/company/useCompanyStore'
+const companyStore = useCompanyStore()
+
 
 const getImageUrl = (fileName?: string) =>
   fileName?.trim() ? `${STORAGE_BASE_URL}/${fileName}` : '/assets/imgs/no-image.png'

@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen flex flex-col">
-    <div class="flex-1 overflow-y-auto pb-20">
+    <div class="flex-1 overflow-y-auto pb-[100px]">
       <!-- 콘텐츠 영역 -->
       <NuxtPage />
     </div>
@@ -8,7 +8,7 @@
     <!-- ✅ 하단 고정 네비게이션 (특정 경로에서는 숨김) -->
     <nav
       v-if="!isFullModalPage"
-      class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-50"
+      class="fixed bottom-0 left-0 right-0 bg-gray-900 border-t border-gray-800 z-40"
     >
       <ul class="flex text-xs text-gray-400">
         <li v-for="item in navItems" :key="item.to" class="flex-1">

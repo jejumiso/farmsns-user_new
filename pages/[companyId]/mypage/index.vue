@@ -71,14 +71,14 @@
 
     </div>
 
-    <div class="text-center">
+    <!-- <div class="text-center">
       <button
         class="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow transition"
         @click="handleLogout"
       >
         로그아웃
       </button>
-    </div>
+    </div> -->
   </div>
 </template>
 
