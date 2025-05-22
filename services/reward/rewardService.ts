@@ -1,3 +1,4 @@
+// 📁 services\reward\rewardService.ts
 import { useApi } from '@/composables/useApi'
 import type { AllimtalkRequest } from '@/shared-types/company/allim_talk_request_type'
 import type { CouponDefinition } from '@/shared-types/coupon/couponDefinition'
@@ -50,3 +51,20 @@ export async function updatePendingReward(
     throw error
   }
 }
+
+
+
+/**
+ * 관리자: 오늘 날짜 기준 회사의 스탬프 적립 로그 조회
+ */
+export async function getRewardLogsByCompanyToday(companyId: string): Promise<RewardLog[]> {
+  try {
+    const api = useApi()
+    const res = await api.get(`/api/reward/logs?companyId=${companyId}`)
+    return res.data?.data || []
+  } catch (error) {
+    console.error('❌ 오늘의 스탬프 로그 불러오기 실패:', error)
+    return []
+  }
+}
+
