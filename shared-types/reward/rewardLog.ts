@@ -1,3 +1,4 @@
+// functions\src\shared-types\reward\rewardLog.ts
 import type { Timestamp } from '@/shared/firebase/firebaseTypes'
 
 export interface ConvertedCouponSummary {
@@ -14,6 +15,7 @@ export interface RewardLog {
   adminUserId: string   // 관리자 ID 또는 테블릿 관리자 ID
   securedPhone: string  // 고객 전화번호 (암호화)
   adminSecuredPhone: string // 관리자 전화번호 (암호화)
+  iv: string               // 🔐 전화번호 복호화를 위한 IV 값 추가
 
   stamp: number         // 적립된 스탬프 (양수, 없으면 0)
   usedStamp: number     // 사용된 스탬프 (양수, 없으면 0)

@@ -4,11 +4,12 @@ import type { ApiResponse } from '@/shared-types/apiResponse'
 import { withApiSafety } from '@/utils/withApiSafety'
 import { useApi } from '@/composables/useApi'
 
-export async function getOrdersByDateService(companyId: string, searchDate: number): Promise<ApiResponse<OrderToSave[]>> {
+export async function getOrdersByDateService(companyId: string, uid: string, searchDate: number): Promise<ApiResponse<OrderToSave[]>> {
   return withApiSafety(() =>
     useApi().get<ApiResponse<OrderToSave[]>>('/api/orders/listByDate', {
       params: {
         companyId,
+        uid,
         searchDate, // 예: '2025-05-03'
       },
     })

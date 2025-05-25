@@ -6,16 +6,19 @@ import { useCompanyStore } from '@/stores/company/useCompanyStore'
 import type { OrderSummary } from '@/shared-types/order/orderSummary'
 import type { IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
 import { haversine } from '~/utils/haversine'
+import type { PaymentMethod, SelectedMethod } from '~/shared-types/order/orderTypes'
+
+
 
 export const useOrderSummaryStore = defineStore('orderSummary', {
   persist: false, 
   state: () => ({
     orderSummary: {
       selectedCoupons: [], // 선택된 쿠폰들
-      paymentMethod: 'onsite', // 결제 방법
+      paymentMethod: 'onsite' as PaymentMethod, // 결제 방법
       usedPoint: 0, // 사용된 포인트
-      selectedMethod: 'takeout', // 주문 방법 (포장, 매장, 배달)
-      selectedAddress: null, // 배송지
+      selectedMethod: 'takeout' as SelectedMethod, // 주문 방법 (포장, 매장, 배달)
+      selectedAddress: undefined, // 배송지
       distance: null, // 배송지와 가게의 거리
       deliveryFee: 0, // 배송비
       customerMemo : '', // 고객 메모
@@ -34,7 +37,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
         paymentMethod: 'onsite',
         usedPoint: 0,
         selectedMethod: 'takeout',
-        selectedAddress: null,
+        selectedAddress: undefined,
         distance: null,
         deliveryFee: 0,
         customerMemo: '',
@@ -59,7 +62,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
     
       // 주문 방식이 'delivery'가 아니라면 무조건 초기화
       if (this.orderSummary.selectedMethod !== 'delivery') {
-        this.orderSummary.selectedAddress = null
+        this.orderSummary.selectedAddress = undefined
         this.orderSummary.distance = null
         this.orderSummary.deliveryFee = 0
         return
@@ -67,7 +70,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
     
       // 리스트가 없거나 기본 배송지가 없으면 초기화
       if (!list.length || !defId) {
-        this.orderSummary.selectedAddress = null
+        this.orderSummary.selectedAddress = undefined
         this.orderSummary.distance = null
         this.orderSummary.deliveryFee = 0
         return
@@ -134,7 +137,7 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
     },
 
     // 주문 방법 변경 시 자동으로 배송비 업데이트
-    updateSelectedMethod(method: string) {
+    updateSelectedMethod(method: SelectedMethod) {
       this.orderSummary.selectedMethod = method
       if (method !== 'delivery') {
         this.orderSummary.deliveryFee = 0

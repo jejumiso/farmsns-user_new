@@ -179,7 +179,7 @@ const router = useRouter();
 const currentPath = ref('');
 const isProductMenuOpen = ref(false);
 
-const authStore = useAuthStore();
+const authStore = useUserAuthStore();
 
 function toggleProductMenu() {
   isProductMenuOpen.value = !isProductMenuOpen.value;

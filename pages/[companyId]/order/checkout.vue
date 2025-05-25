@@ -173,6 +173,7 @@ import { Timestamp } from '~/shared/firebase/firebaseTypes'
 import type { Order } from '~/shared-types/order/order'
 import { format } from 'date-fns'
 import type { UserSummary } from '~/shared-types/user/userSummary'
+import type { PaymentMethod, SelectedMethod } from '~/shared-types/order/orderTypes'
 
 declare global {
   interface Window {
@@ -273,17 +274,17 @@ const finalAmount = computed(() =>
 
 const paymentMethod = computed({
   get: () => orderSummaryStore.orderSummary.paymentMethod,
-  set: (value: string) => {
+  set: (value: PaymentMethod) => {
     orderSummaryStore.updateOrderSummary({ paymentMethod: value })
   }
 })
 
-function selectMethod(m: string) {
+function selectMethod(m: SelectedMethod) {
   orderSummaryStore.updateOrderSummary({ selectedMethod: m })
   orderSummaryStore.updateSelectedAddress()
 }
 
-function selectPaymentMethod(method: string) {
+function selectPaymentMethod(method: PaymentMethod) {
   orderSummaryStore.updateOrderSummary({ paymentMethod: method })
 }
 
@@ -332,50 +333,46 @@ async function placeOrder() {
     const yyyymmdd = Number(format(today, 'yyyyMMdd'))
     const yyyymm = Number(format(today, 'yyyyMM'))
 
-    const userSummary : UserSummary = {
-      uid: '',
-      securedUserName: '',
-      securedPhoneMain: '',
-      phoneSuffix: '',
-      memoAdmin: '',
-      orderTotalCount: 0,
-      stampCount: 0,
-      pointCount: 0,
-      iv: ''
+    const userSummary: UserSummary = {
+      uid: userAuthStore.currentUser.uid,
+      securedUserName: userAuthStore.customerProfile?.securedUserName??'',
+      securedPhoneMain: userAuthStore.customerProfile?.contactInfo.securedPhoneMain ??'',
+      phoneSuffix: userAuthStore.customerProfile?.contactInfo.phoneSuffix ??'',
+      memoAdmin: userAuthStore.customerCompanyActivity?.memoAdmin ?? '',
+      orderTotalCount: userAuthStore.customerCompanyActivity?.orderTotalCount ?? 0,
+      stampCount: userAuthStore.customerCompanyActivity?.stampCount ?? 0,
+      pointCount: userAuthStore.customerCompanyActivity?.pointCount ?? 0,
+      iv: userAuthStore.customerProfile?.iv??'',
     }
 
     const order: Order = {
-      ...orderSummaryStore.orderSummary,
-      userSummary,
-      cartItems: cartStore.items,
-      selectedCoupons: orderSummaryStore.orderSummary.selectedCoupons.map(c => ({ ...c, usedAmount: c.usedAmount ?? 0 })),
-      paymentMethod: orderSummaryStore.orderSummary.paymentMethod as Order['paymentMethod'],
-      selectedMethod: orderSummaryStore.orderSummary.selectedMethod as Order['selectedMethod'],
+      id: undefined,
+      orderChannel: 'web',
+      terminalId: '',
       companyId: companyStore.currentCompanyId,
       uid: userAuthStore.currentUser.uid,
-      orderStatus: 'pending',
-      processStatus: 'waitingConfirm',
-      dateCreated: now,
-      dateModified: now,
+      userSummary,
+      selectedMethod: orderSummaryStore.orderSummary.selectedMethod,
+      items: cartStore.items,
+      selectedCoupons: selectedCoupons.value,
       cartTotalBase: cartStore.cartTotalBase,
       cartTotalWithOptions: cartStore.cartTotalWithOptions,
-      couponDiscountTotal: optimizer.calculateCouponDiscountForSelected(),
-      finalAmount: finalAmount.value,
-      deliveryFee: orderSummaryStore.orderSummary.deliveryFee,
-      distance: orderSummaryStore.orderSummary.distance ?? 0,
-      selectedAddress: orderSummaryStore.orderSummary.selectedAddress!,
-      customerMemo: orderSummaryStore.orderSummary.customerMemo ?? '',
+      deliveryFee: deliveryFee.value,
+      couponDiscountTotal: couponDiscount.value,
+      pointDiscountTotal: usedPointInput.value,
+      selectedAddress: selectedAddress.value,
+      distance: distance.value,
+      orderStatus: 'pending',
+      processStatus: 'waitingConfirm',
+      paySummaries: [],
       rewardPointPlanned: rewardPointPlanned.value,
       rewardStampPlanned: rewardStampPlanned.value,
-      paidAmount: 0,
-      datePayment: Timestamp.fromMillis(0),
-      paymentConfirmed: false,
-      dateCreatedYYYYmmdd: yyyymmdd,
+      customerMemo: orderSummaryStore.orderSummary.customerMemo ?? '',
+      dateCreated: now,
+      dateModified: now,
       dateCreatedYYYYmm: yyyymm,
-      pgPaidAmount: 0,
-      paymentLogs: [],
-      orderChannel: 'web',
-      terminalId: ''
+      dateCreatedYYYYmmdd: yyyymmdd,
+      paymentMethod: orderSummaryStore.orderSummary.paymentMethod
     }
 
     const clientSnapshot = {
@@ -397,6 +394,7 @@ async function placeOrder() {
         showCardSlider.value = true
         return
       }
+      
       const isZeroPayLike = ['onsite', 'bank', 'zeropay'].includes(orderSummaryStore.orderSummary.paymentMethod)
       if (isZeroPayLike) {
         orderSummaryStore.$reset()

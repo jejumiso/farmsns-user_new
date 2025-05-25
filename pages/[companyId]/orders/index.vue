@@ -22,19 +22,19 @@
     <!-- 주문 목록 -->
     <div v-else-if="orders.length" class="space-y-5">
       <div
-        v-for="order in orders"
-        :key="order.id"
+        v-for="(orderModel,index) in orderModels"
+        :key="orderModel.raw.id"
         class="rounded-xl border border-gray-200 bg-white p-4 shadow-sm space-y-3"
       >
         <!-- 헤더 -->
         <div class="flex justify-between items-center text-sm text-gray-600">
-          <span class="font-semibold text-gray-800">주문번호 : {{ getDisplayOrderId(order.id) }}</span>
-          <span class="text-xs">{{ formatTime(order.dateCreated) }}</span>
+          <span class="font-semibold text-gray-800">주문번호 : {{ getDisplayOrderId(orderModel.raw.id) }}</span>
+          <span class="text-xs">{{ formatTime(orderModel.raw.dateCreated) }}</span>
         </div>
 
         <!-- 상품 + 옵션 -->
         <ul class="text-sm text-gray-700 space-y-2 pl-4 list-disc">
-          <li v-for="item in order.orderItems" :key="item.productId">
+          <li v-for="item in orderModel.items" :key="item.productId">
             <div>
               {{ item.productName }} × {{ item.quantity }}
               <div
@@ -50,41 +50,53 @@
         <!-- 리워드 -->
         <div
           class="bg-green-50 border border-green-200 rounded-md p-3 text-sm text-green-800"
-          v-if="order.rewardPointPlanned || order.rewardStampPlanned"
+          v-if="orderModel.raw.rewardPointPlanned || orderModel.raw.rewardStampPlanned"
         >
           <p class="font-semibold mb-1">🎉 리워드 적립 완료</p>
-          <p v-if="order.rewardPointPlanned > 0">• 포인트: {{ order.rewardPointPlanned.toLocaleString() }}P</p>
-          <p v-if="order.rewardStampPlanned > 0">• 스탬프: {{ order.rewardStampPlanned }}개</p>
+          <p v-if="orderModel.raw.rewardPointPlanned > 0">• 포인트: {{ orderModel.raw.rewardPointPlanned.toLocaleString() }}P</p>
+          <p v-if="orderModel.raw.rewardStampPlanned > 0">• 스탬프: {{ orderModel.raw.rewardStampPlanned }}개</p>
         </div>
 
         <!-- 결제 요약 -->
         <div class="bg-gray-50 border border-gray-200 rounded-lg p-3 text-sm text-gray-700 space-y-1">
           <div class="grid grid-cols-2 gap-y-1">
             <span>총 상품 금액</span>
-            <span class="text-right">{{ order.cartTotalWithOptions.toLocaleString() }}원</span>
+            <span class="text-right">{{ orderModel.raw.cartTotalWithOptions.toLocaleString() }}원</span>
             <span>쿠폰 할인</span>
-            <span class="text-right text-red-500">-{{ order.couponDiscountTotal.toLocaleString() }}원</span>
+            <span class="text-right text-red-500">-{{ orderModel.raw.couponDiscountTotal.toLocaleString() }}원</span>
             <span>포인트 사용</span>
-            <span class="text-right text-red-500">-{{ order.usedPoint.toLocaleString() }}P</span>
+            <span class="text-right text-red-500">-{{ orderModel.raw.pointDiscountTotal.toLocaleString() }}P</span>
             <span>배송비</span>
-            <span class="text-right">{{ order.deliveryFee.toLocaleString() }}원</span>
+            <span class="text-right">{{ orderModel.raw.deliveryFee.toLocaleString() }}원</span>
             <span class="font-semibold">최종 결제 금액</span>
-            <span class="text-right font-bold text-black">{{ order.finalAmount.toLocaleString() }}원</span>
+            <span class="text-right font-bold text-black">
+              {{ orderModel.finalAmount.toLocaleString() }}원
+            </span>
+            <span class="text-right font-bold text-black">{{ orderModel.finalAmount.toLocaleString() }}원</span>
           </div>
 
           <p class="text-xs text-gray-500 mt-2">
-            결제 방식: {{ order.paymentMethod }}
-            <span
-              v-if="order.pgPaidAmount && order.pgPaidAmount > 0"
-              class="text-sm text-blue-600"
-            >
-              : {{ order.pgPaidAmount.toLocaleString() }}원
-            </span>
+            결제 방식:
+            <template v-if="filteredConfirmedPayments(orderModel).length">
+              <span
+                v-for="(summary, index) in filteredConfirmedPayments(orderModel)"
+                :key="index"
+                class="text-sm text-blue-600"
+              >
+                {{ methodLabel(summary.method) }} {{ summary.amount.toLocaleString() }}원
+                <span v-if="index < filteredConfirmedPayments(orderModel).length - 1">, </span>
+              </span>
+            </template>
+            <template v-else>
+              결제 내역 없음
+            </template>
           </p>
+
+
 
           <!-- 무통장 계좌 정보 -->
           <div
-            v-if="order.paymentMethod === 'bank' && bankAccount"
+            v-if="orderModel.raw.paymentMethod === 'bank' && bankAccount"
             class="mt-3 p-2 border border-dashed border-gray-300 rounded text-sm text-gray-700"
           >
             <div class="flex items-center justify-between gap-2">
@@ -93,7 +105,7 @@
                 ({{ bankAccount.accountHolder }})
               </span>
               <button
-                @click="copyBankInfo(order)"
+                @click="copyBankInfo(orderModel)"
                 class="text-xs text-blue-600 border border-blue-500 px-2 py-0.5 rounded hover:bg-blue-50"
               >
                 복사
@@ -106,9 +118,9 @@
         <div class="flex justify-end">
           <span
             class="text-xs px-3 py-0.5 rounded-full font-medium"
-            :class="statusBadgeClass(order.processStatus)"
+            :class="statusBadgeClass(orderModel.raw.processStatus)"
           >
-            {{ orderStatusLabel(order.processStatus) }}
+            {{ orderStatusLabel(orderModel.raw.processStatus) }}
           </span>
         </div>
       </div>
@@ -126,54 +138,59 @@
 import { ref, watch, onMounted, computed } from 'vue'
 import { format, isToday as isTodayFn, subDays, addDays } from 'date-fns'
 import { getOrdersByDateService } from '@/services/orders/getOrdersByDateService'
-import type { OrderToSave } from '@/shared-types/order/order'
+import { OrderModel, type OrderToSave } from '@/shared-types/order/order'
 import { useCompanyStore } from '@/stores/company/useCompanyStore'
 import { useApi } from '~/composables/useApi'
+import type { ProcessedOrderItem } from '~/shared-types/cart/cartItem'
+import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'; // authStore 가져오기
+const authStore = useUserAuthStore();
 
 const companyStore = useCompanyStore()
 const companyId = companyStore.currentCompanyId
 
 const selectedDate = ref(new Date())
 const orders = ref<OrderToSave[]>([])
+const orderModels = computed(() => orders.value.map(order => new OrderModel(order)))
+
 
 // ✅ 기본값 포함한 계좌정보
 const bankAccount = computed(() => {
   return companyStore.currentCompany?.bankAccount ?? {
-    accountNumber: '000-0000-0000-00',
-    accountHolder: '홍길동',
-    bankName: '은행명',
+    accountNumber: '',
+    accountHolder: '',
+    bankName: '',
   }
 })
 
-async function openReceipt(order: OrderToSave) {
-  const tid = order.paymentLogs?.find(p => p.type === 'approved')?.tid
-  const companyId = order.companyId
+// async function openReceipt(order: OrderToSave) {
+//   const tid = order.paymentLogs?.find(p => p.type === 'approved')?.tid
+//   const companyId = order.companyId
 
-  if (!tid || !companyId) {
-    alert('영수증 정보를 찾을 수 없습니다.')
-    return
-  }
+//   if (!tid || !companyId) {
+//     alert('영수증 정보를 찾을 수 없습니다.')
+//     return
+//   }
 
-  try {
-    const { data } = await useApi().get('/api/payment/receipt-url', {
-      params: { tid, companyId },
-    })
+//   try {
+//     const { data } = await useApi().get('/api/payment/receipt-url', {
+//       params: { tid, companyId },
+//     })
 
-    if (data.isSuccess && data.receiptUrl) {
-      window.open(data.receiptUrl, '_blank')
-    } else {
-      alert('영수증 URL을 가져오지 못했습니다.')
-    }
-  } catch (error) {
-    console.error('📛 영수증 API 호출 실패:', error)
-    alert('영수증 확인 중 오류가 발생했습니다.')
-  }
-}
+//     if (data.isSuccess && data.receiptUrl) {
+//       window.open(data.receiptUrl, '_blank')
+//     } else {
+//       alert('영수증 URL을 가져오지 못했습니다.')
+//     }
+//   } catch (error) {
+//     console.error('📛 영수증 API 호출 실패:', error)
+//     alert('영수증 확인 중 오류가 발생했습니다.')
+//   }
+// }
 
 
 
-function copyBankInfo(order: OrderToSave) {
-  const text = `${bankAccount.value.bankName} ${bankAccount.value.accountNumber} (${bankAccount.value.accountHolder}) - 입금액: ${order.finalAmount.toLocaleString()}원`
+function copyBankInfo(orderModel: OrderModel<ProcessedOrderItem>) {
+  const text = `${bankAccount.value.bankName} ${bankAccount.value.accountNumber} (${bankAccount.value.accountHolder}) - 입금액: ${orderModel.finalAmount.toLocaleString()}원`
   navigator.clipboard.writeText(text).then(() => {
     
     const toast = useToast()
@@ -260,7 +277,12 @@ async function fetchOrders() {
   const searchDate = Number(format(selectedDate.value, 'yyyyMMdd'))
 
   try {
-    const res = await getOrdersByDateService(companyId, searchDate)
+    const uid = authStore.currentUser?.uid
+    if (!uid) {
+      console.warn('❗ 사용자 ID가 없습니다.')
+      return
+    }
+    const res = await getOrdersByDateService(companyId, uid, searchDate)
     if (res.isSuccess) {
       orders.value = res.data ?? []
     } else {
@@ -274,4 +296,20 @@ async function fetchOrders() {
 
 watch(selectedDate, fetchOrders)
 onMounted(fetchOrders)
+
+const filteredConfirmedPayments = (model: OrderModel<any>) =>
+  model.raw.paySummaries.filter(p => p.confirmed && !['point', 'coupon'].includes(p.method))
+
+
+function methodLabel(method: string) {
+  const labels: Record<string, string> = {
+    card: '카드',
+    easy: '간편결제',
+    cash: '현금',
+    bank: '무통장입금',
+    zeropay: '제로페이',
+  }
+  return labels[method] || method
+}
+
 </script>

@@ -30,7 +30,7 @@ export function createOrderService() {
       }
 
       return withApiSafety(() =>
-        useApi().post<ApiResponse>(`${baseUrl}/place`, payload)
+        useApi().post<ApiResponse>(`${baseUrl}/placeWithModel`, payload)
       )
     }
   }
