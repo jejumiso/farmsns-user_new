@@ -30,6 +30,7 @@ export interface CustomerProfile {
   }
 
   searchField: string[] // 검색을 위한 키워드 (예: 전화번호 끝 4자리, 이메일 해시 등)  
+  roles? : string[] // 사용자 역할 (예: 'admin', 'user' 등) 보통은 값이 없음. admin-관리자, fake-카드심사등록을위해 하단에 회사정보,상품에 반품전보등 표시
   dateLastOrder: Timestamp | null // 마지막 주문 시각
   dateCreated: Timestamp // 생성 시각
   dateModified: Timestamp // 수정 시각

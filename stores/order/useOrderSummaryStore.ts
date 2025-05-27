@@ -115,26 +115,43 @@ export const useOrderSummaryStore = defineStore('orderSummary', {
       const deliveryConfig = useCompanyStore().currentCompany?.deliveryConfig
       const selectedAddress = this.orderSummary.selectedAddress
       const distance = this.orderSummary.distance
+      const cartItems = useCartStore().items
 
-      if (!deliveryConfig || !selectedAddress || distance === null) {
+      if (!deliveryConfig) {
         this.orderSummary.deliveryFee = 0
         return
       }
 
-      const { baseDistance, baseFee, additionalDistance, additionalFee } = deliveryConfig
+      if (deliveryConfig.type === 'quick') {
+        if (!selectedAddress || distance === null) {
+          this.orderSummary.deliveryFee = 0
+          return
+        }
 
-      // 기본 거리 이내는 기본 배송비만 적용
-      if (distance <= baseDistance) {
-        this.orderSummary.deliveryFee = baseFee
-        return
+        const { baseDistance, baseFee, additionalDistance, additionalFee } = deliveryConfig
+
+        if (distance <= baseDistance) {
+          this.orderSummary.deliveryFee = baseFee
+        } else {
+          const extraDistance = Math.ceil((distance - baseDistance) / additionalDistance)
+          const extraFee = extraDistance * additionalFee
+          this.orderSummary.deliveryFee = baseFee + extraFee
+        }
+      } else if (deliveryConfig.type === 'parcel') {
+        const totalBundleValue = cartItems.reduce((sum, item) => {
+          const value = item.parcelBundleValue ?? 1
+          return sum + value * item.quantity
+        }, 0)
+
+        const bundleCount = Math.ceil(totalBundleValue / deliveryConfig.bundleUnit)
+        this.orderSummary.deliveryFee = bundleCount * deliveryConfig.baseFee
+      } else {
+        this.orderSummary.deliveryFee = 0
       }
-
-      // 기본 거리 이후 추가 요금 계산
-      const extraDistance = Math.ceil((distance - baseDistance) / additionalDistance)
-      const extraFee = extraDistance * additionalFee
-
-      this.orderSummary.deliveryFee = baseFee + extraFee
     },
+
+
+
 
     // 주문 방법 변경 시 자동으로 배송비 업데이트
     updateSelectedMethod(method: SelectedMethod) {

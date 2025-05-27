@@ -71,14 +71,14 @@
 
     </div>
 
-    <!-- <div class="text-center">
+    <div v-if="isAdmin" class="text-center">
       <button
         class="bg-red-500 hover:bg-red-600 text-white font-semibold px-5 py-2.5 rounded-xl shadow transition"
         @click="handleLogout"
       >
         로그아웃
       </button>
-    </div> -->
+    </div>
   </div>
 </template>
 
@@ -128,5 +128,6 @@ const handleLogout = async () => {
   authStore.logout()
   router.replace('/') // 로그아웃 후 홈 또는 로그인 페이지로 이동
 }
+const isAdmin = computed(() => {return authStore.customerProfile?.roles?.includes('admin') ?? false})
 </script>
 

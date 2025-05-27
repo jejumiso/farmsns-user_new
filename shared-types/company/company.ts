@@ -2,12 +2,24 @@
 import { Timestamp, GeoPoint, DocumentReference } from '@/shared/firebase/firebaseTypes'
 import  { CompanyType } from './companyType';
 
-export interface DeliveryConfig {
-  baseFee: number;            // 기본 배송비
-  baseDistance: number;       // 기본 거리 (예: 3000m)
-  additionalFee: number;     // 추가 요금 (예: 500원)
-  additionalDistance: number; // 추가 요금이 부과되는 거리 단위 (예: 5m)
+// 퀵배송 요금 계산 방식 (오프라인 매장용)
+export interface QuickDeliveryConfig {
+  type: 'quick'
+  baseFee: number
+  baseDistance: number
+  additionalFee: number
+  additionalDistance: number
 }
+
+// 택배 요금 계산 방식 (온라인몰용)
+export interface ParcelDeliveryConfig {
+  type: 'parcel'
+  baseFee: number        // 기본 택배비 (예: 5000원)
+  bundleUnit: number     // 묶음 배송 단위 (예: 5개당 5000원)
+}
+
+// 공통 DeliveryConfig 타입
+export type DeliveryConfig = QuickDeliveryConfig | ParcelDeliveryConfig
 
 export interface RewardPolicy {
   saveType: 'point' | 'stamp'
@@ -34,15 +46,29 @@ export interface KakaoInfo {
   securedSenderKey: string
 }
 
+export interface DailyHours {
+  isOpen: boolean
+  openHour: number   // 예: 10
+  openMinute: number // 예: 0
+  closeHour: number  // 예: 15
+  closeMinute: number // 예: 0
+}
+
 export interface BusinessHours {
-  timeNowClose: Timestamp | null
-  timeOrderOpen: Timestamp | null
-  timeOrderClose: Timestamp | null
-  timeShopOpen: Timestamp | null
-  timeShopClose: Timestamp | null
   isOpenYearRound: boolean
   isOpen24Hours: boolean
+  manualCloseMessage?: string // 관리자가 직접 입력하는 휴무 안내 메시지
+  weeklyHours: {
+    monday: DailyHours
+    tuesday: DailyHours
+    wednesday: DailyHours
+    thursday: DailyHours
+    friday: DailyHours
+    saturday: DailyHours
+    sunday: DailyHours
+  }
 }
+
 
 export interface BusinessInfo {
   shopName: string
@@ -180,11 +206,15 @@ export function createEmptyCompany(): Company {
     businessHours: {
       isOpenYearRound: false,
       isOpen24Hours: false,
-      timeNowClose: null,
-      timeOrderOpen: null,
-      timeOrderClose: null,
-      timeShopOpen: null,
-      timeShopClose: null,
+      weeklyHours: {
+        monday:     { isOpen: false, openHour: 0, openMinute: 0, closeHour: 0, closeMinute: 0 },
+        tuesday:    { isOpen: false, openHour: 0, openMinute: 0, closeHour: 0, closeMinute: 0 },
+        wednesday:  { isOpen: false, openHour: 0, openMinute: 0, closeHour: 0, closeMinute: 0 },
+        thursday:   { isOpen: false, openHour: 0, openMinute: 0, closeHour: 0, closeMinute: 0 },
+        friday:     { isOpen: false, openHour: 0, openMinute: 0, closeHour: 0, closeMinute: 0 },
+        saturday:   { isOpen: false, openHour: 0, openMinute: 0, closeHour: 0, closeMinute: 0 },
+        sunday:     { isOpen: false, openHour: 0, openMinute: 0, closeHour: 0, closeMinute: 0 },
+      },
     },
 
     businessInfo: {
@@ -244,6 +274,7 @@ export function createEmptyCompany(): Company {
     },
 
     deliveryConfig: {
+      type: 'quick',
       baseFee: 3000,
       baseDistance: 3000,
       additionalFee: 500,

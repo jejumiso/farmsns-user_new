@@ -102,14 +102,14 @@ import { useOptionStore } from '@/stores/option/useOptionStore'
 import { useOptionGroupStore } from '@/stores/option-group/useOptionGroupStore'
 import ProductOptions from './ProductOptions.vue'
 import { getImageUrl } from '@/utils/getImageUrl'
-
+import { useCompanyStore } from '@/stores/company/useCompanyStore'
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
 const productStore = useProductStore()
 const optionStore = useOptionStore()
 const optionGroupStore = useOptionGroupStore()
-
+const companyStore = useCompanyStore()
 const productId = route.params.productId as string
 const companyId = route.params.companyId as string
 
@@ -188,6 +188,11 @@ function closeModal() {
 }
 
 function addToCart() {
+  if(!companyStore.currentCompany?.isOpen) {
+    alert('현재 영업 중이 아닙니다. 나중에 다시 시도해주세요.') 
+    return
+
+  }
   if (!product.value || quantity.value <= 0) return
 
   const optionResults = selectedOptionSummaries.value.map(opt => ({

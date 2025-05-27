@@ -18,18 +18,18 @@
         {{ cat.categoryName }}
       </button>
     </div>
-
     <!-- 영업 상태 안내 -->
     <div
       class="rounded-lg px-4 py-3 text-sm text-center shadow-sm border font-medium"
       :class="companyStore.currentCompany?.isOpen
         ? 'bg-green-50 text-green-700 border-green-100'
         : 'bg-gray-100 text-gray-500 border-gray-200'"
-    >
-      {{ companyStore.currentCompany?.isOpen
+      v-html="companyStore.currentCompany?.isOpen
         ? '✅ 영업중입니다. 많은 이용 부탁드립니다!'
-        : '⛔️ 영업이 종료되었습니다. 내일 다시 뵐게요 😊' }}
-    </div>
+        : getNextOpenMessage()"
+    ></div>
+
+
 
     <!-- 상품 없음 안내 -->
     <div v-if="filteredProducts.length === 0" class="text-center text-gray-500 text-sm">
@@ -65,9 +65,13 @@
 <!-- 상품 목록 페이지 하단 장바구니 버튼 -->
 <NuxtLink
   :to="`/${companyId}/cart`"
-  class="fixed bottom-[65px] left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-green-600 text-white text-sm font-medium px-6 py-3 rounded-full shadow-xl z-40 text-center"
+  :class="[
+    'fixed left-1/2 -translate-x-1/2 w-[90%] max-w-sm bg-green-600 text-white text-sm font-medium px-6 py-3 rounded-full shadow-xl z-40 text-center',
+    isFakeMode ? 'bottom-[230px]' : 'bottom-[65px]'
+  ]"
 >
-  <span v-if="cartCount > 0">🛒 {{ cartCount }}개 담김 - 장바구니 보기</span>
+  <span v-if="!companyStore.currentCompany?.isOpen">영업중이 아닙니다.</span>
+  <span v-else-if="cartCount > 0">🛒 {{ cartCount }}개 담김 - 장바구니 보기</span>
   <span v-else>🛒 장바구니가 비어있어요</span>
 </NuxtLink>
 
@@ -84,7 +88,9 @@ import { useProductListViewStore } from '@/stores/view/products/useListViewStore
 import { useCartStore } from '@/stores/cart/useCartStore'
 import { STORAGE_BASE_URL } from '@/shared-constants/constants'
 
-  import { useCompanyStore } from '@/stores/company/useCompanyStore'
+import { useCompanyStore } from '@/stores/company/useCompanyStore'
+import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
+const authStore = useUserAuthStore()
 const companyStore = useCompanyStore()
 
 
@@ -142,4 +148,43 @@ onMounted(async () => {
 window.addEventListener('scroll', () => {
   viewStore.setScrollTop(window.scrollY)
 })
+
+function getNextOpenMessage(): string {
+  const businessHours = companyStore.currentCompany?.businessHours
+  if (!businessHours) return '영업 시간이 설정되지 않았습니다.'
+
+  const now = new Date()
+  const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const
+  type DayKey = typeof dayMap[number]
+
+  const todayIndex = now.getDay()
+  const todayKey = dayMap[todayIndex] as DayKey
+
+  for (let i = 1; i <= 7; i++) {
+    const nextIndex = (todayIndex + i) % 7
+    const nextKey = dayMap[nextIndex] as DayKey
+    const day = businessHours.weeklyHours[nextKey]
+
+    if (day?.isOpen) {
+      const h = String(day.openHour).padStart(2, '0')
+      const m = String(day.openMinute).padStart(2, '0')
+      const h2 = String(day.closeHour).padStart(2, '0')
+      const m2 = String(day.closeMinute).padStart(2, '0')
+      const label = i === 1 ? '내일' : `${['일', '월', '화', '수', '목', '금', '토'][nextIndex]}요일`
+      return `⛔️ 영업 종료. <strong class="text-green-600">${label} ${h}시${m}분~${h2}시${m2}분</strong>에 다시 열어요 😊`.replaceAll('00분','')
+      if(day.openMinute === 0 && day.closeMinute === 0){
+        return `⛔️ 영업 종료. <strong class="text-green-600">${label} ${h}~${h2}시</strong>에 다시 열어요 😊`
+      }else{
+        return `⛔️ 영업 종료. <strong class="text-green-600">${label} ${h}시${m}분</strong>에 다시 열어요 😊`
+      }
+      
+    }
+  }
+
+  return '⛔️ 현재 영업이 종료되었으며 예정된 오픈 시간이 없습니다.'
+}
+
+
+
+const isFakeMode = computed(() => {return authStore.customerProfile?.roles?.includes('fake') ?? false})
 </script>

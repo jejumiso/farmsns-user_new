@@ -57,6 +57,7 @@ export const useCartStore = defineStore('cart', {
           rewardStamp: product.rewardStamp,
           rewardPoint: product.rewardPoint,
           rewardExcludedQuantity: 0, // ⭐️ 초기값
+          parcelBundleValue : product.parcelBundleValue?? undefined,
           options,
         }
         this.items.push(newItem)
