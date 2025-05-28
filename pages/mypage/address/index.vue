@@ -113,6 +113,7 @@ import type { DeliveryAddress } from '@/shared-types/delivery-address/deliveryAd
 import { GeoPoint } from '@/shared/firebase/firebaseTypes'
 import geohash from 'ngeohash'
 import { createCustomerProfileService } from '@/services/customer/customerProfileService'
+import { encryptWithIv } from '~/shared-utils/crypto/encryption'
 
 const router = useRouter()
 const authStore = useUserAuthStore()
@@ -171,7 +172,7 @@ function registerAddress() {
   const newAddr: DeliveryAddress = {
     ...base,
     id: `addr_${Date.now()}`,
-    encryptedDetailAddress: detailAddress.value,
+    encryptedDetailAddress: encryptWithIv( detailAddress.value,authStore.customerProfile!.iv),
     geoHash: geohash.encode(base.geoPoint.latitude, base.geoPoint.longitude)
   }
   authStore.customerProfile!.deliveryAddressList.push(newAddr)

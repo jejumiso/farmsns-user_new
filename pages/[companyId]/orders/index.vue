@@ -72,7 +72,6 @@
             <span class="text-right font-bold text-black">
               {{ orderModel.finalAmount.toLocaleString() }}원
             </span>
-            <span class="text-right font-bold text-black">{{ orderModel.finalAmount.toLocaleString() }}원</span>
           </div>
 
           <p class="text-xs text-gray-500 mt-2">
@@ -191,6 +190,15 @@ const bankAccount = computed(() => {
 
 function copyBankInfo(orderModel: OrderModel<ProcessedOrderItem>) {
   const text = `${bankAccount.value.bankName} ${bankAccount.value.accountNumber} (${bankAccount.value.accountHolder}) - 입금액: ${orderModel.finalAmount.toLocaleString()}원`
+  if (!navigator.clipboard) {
+    useToast().add({
+      title: '❗ 클립보드 미지원',
+      description: '이 브라우저에서는 클립보드 복사 기능이 지원되지 않습니다.',
+      color: 'warning',
+    })
+    return
+  }
+  
   navigator.clipboard.writeText(text).then(() => {
     
     const toast = useToast()

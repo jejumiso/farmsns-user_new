@@ -2,32 +2,34 @@
 <template>
   <div class="p-4 max-w-3xl mx-auto space-y-6 bg-white pb-0">
 
-    <!-- 카테고리 필터 -->
-    <div class="flex flex-wrap gap-2 justify-center">
-      <button
-        v-for="cat in categories"
-        :key="cat.id"
-        @click="viewStore.setCategory(cat.id)"
-        :class="[
-          'px-4 py-1.5 text-sm font-medium rounded-full transition-all border shadow-sm',
-          viewStore.selectedCategoryId === cat.id
-            ? 'bg-green-600 text-white border-green-600'
-            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
-        ]"
-      >
-        {{ cat.categoryName }}
-      </button>
-    </div>
+<!-- 카테고리 필터: 1줄 5개, 슬림하고 정렬된 버튼 -->
+<div class="grid grid-cols-4 gap-2 max-w-5xl mx-auto mt-4">
+  <button
+    v-for="cat in categories"
+    :key="cat.id"
+    @click="viewStore.setCategory(cat.id)"
+    class="text-sm font-medium text-center rounded-full border transition-all duration-150 cursor-pointer px-3 py-1.5 whitespace-nowrap"
+    :class="viewStore.selectedCategoryId === cat.id
+      ? 'bg-green-600 text-white border-green-600'
+      : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'"
+  >
+    {{ cat.categoryName }}
+  </button>
+</div>
+
+
+
+
+
     <!-- 영업 상태 안내 -->
     <div
       class="rounded-lg px-4 py-3 text-sm text-center shadow-sm border font-medium"
-      :class="companyStore.currentCompany?.isOpen
+      :class="isOpen
         ? 'bg-green-50 text-green-700 border-green-100'
         : 'bg-gray-100 text-gray-500 border-gray-200'"
-      v-html="companyStore.currentCompany?.isOpen
-        ? '✅ 영업중입니다. 많은 이용 부탁드립니다!'
-        : getNextOpenMessage()"
+      v-html="openMessage"
     ></div>
+
 
 
 
@@ -90,8 +92,24 @@ import { STORAGE_BASE_URL } from '@/shared-constants/constants'
 
 import { useCompanyStore } from '@/stores/company/useCompanyStore'
 import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
+import { getNextOpenMessage } from '@/utils/businessHours'
+
+
 const authStore = useUserAuthStore()
 const companyStore = useCompanyStore()
+const currentCompany = computed(() => companyStore.currentCompany)
+const isOpen = computed(() => currentCompany.value?.isOpen ?? false)
+
+const openMessage = computed(() => {
+  if (isOpen.value) {
+    return '✅ 영업중입니다. 많은 이용 부탁드립니다!'
+  }
+
+  const businessHours = currentCompany.value?.businessHours
+  return businessHours
+    ? getNextOpenMessage(businessHours)
+    : '⛔️ 영업 시간이 설정되지 않았습니다.'
+})
 
 
 const getImageUrl = (fileName?: string) =>
@@ -149,40 +167,6 @@ window.addEventListener('scroll', () => {
   viewStore.setScrollTop(window.scrollY)
 })
 
-function getNextOpenMessage(): string {
-  const businessHours = companyStore.currentCompany?.businessHours
-  if (!businessHours) return '영업 시간이 설정되지 않았습니다.'
-
-  const now = new Date()
-  const dayMap = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'] as const
-  type DayKey = typeof dayMap[number]
-
-  const todayIndex = now.getDay()
-  const todayKey = dayMap[todayIndex] as DayKey
-
-  for (let i = 1; i <= 7; i++) {
-    const nextIndex = (todayIndex + i) % 7
-    const nextKey = dayMap[nextIndex] as DayKey
-    const day = businessHours.weeklyHours[nextKey]
-
-    if (day?.isOpen) {
-      const h = String(day.openHour).padStart(2, '0')
-      const m = String(day.openMinute).padStart(2, '0')
-      const h2 = String(day.closeHour).padStart(2, '0')
-      const m2 = String(day.closeMinute).padStart(2, '0')
-      const label = i === 1 ? '내일' : `${['일', '월', '화', '수', '목', '금', '토'][nextIndex]}요일`
-      return `⛔️ 영업 종료. <strong class="text-green-600">${label} ${h}시${m}분~${h2}시${m2}분</strong>에 다시 열어요 😊`.replaceAll('00분','')
-      if(day.openMinute === 0 && day.closeMinute === 0){
-        return `⛔️ 영업 종료. <strong class="text-green-600">${label} ${h}~${h2}시</strong>에 다시 열어요 😊`
-      }else{
-        return `⛔️ 영업 종료. <strong class="text-green-600">${label} ${h}시${m}분</strong>에 다시 열어요 😊`
-      }
-      
-    }
-  }
-
-  return '⛔️ 현재 영업이 종료되었으며 예정된 오픈 시간이 없습니다.'
-}
 
 
 

@@ -135,6 +135,7 @@ export interface PaymentSummary {
     rewardPointPlanned: number
     rewardStampPlanned: number
     customerMemo: string    
+    iv?: string
     dateCreated: Timestamp
     dateModified: Timestamp
     dateCreatedYYYYmm: number

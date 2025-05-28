@@ -9,6 +9,7 @@ export async function getOrdersByDateService(companyId: string,uid:string, searc
     useApi().get<ApiResponse<OrderToSave[]>>('/api/orders/listByDate', {
       params: {
         companyId,
+        uid,
         searchDate, // 예: '2025-05-03'
       },
     })

@@ -1,3 +1,4 @@
+<!-- 📁 components/admin/product/ProductDetailModal.vue-->
 <template>
   <div class="fixed inset-0 bg-white z-50 overflow-auto">
     <!-- 상단 닫기 버튼 -->
@@ -35,8 +36,25 @@
         v-if="product"
         :product="product"
         v-model:selectedOptions="selectedOptions"
-        v-model:quantity="quantity"
       />
+      <!-- 총 수량 -->
+      <div class="border-t border-gray-300 pt-4">
+        <div class="flex items-center justify-between">
+          <p class="font-semibold text-gray-800 text-sm">🧮 총 수량</p>
+          <div class="flex items-center gap-2">
+            <button
+              @click="quantity--"
+              :disabled="quantity <= 1"
+              class="px-2 py-1 bg-gray-200 rounded text-sm font-medium"
+            >-</button>
+            <span class="w-6 text-center">{{ quantity }}</span>
+            <button
+              @click="quantity++"
+              class="px-2 py-1 bg-gray-200 rounded text-sm font-medium"
+            >+</button>
+          </div>
+        </div>
+      </div>
 
       <!-- 결제 요약 -->
       <div class="rounded-lg border border-gray-200 bg-gray-50 p-4 space-y-2 text-sm text-gray-700 shadow-sm">
@@ -54,8 +72,15 @@
             :key="i"
             class="flex justify-between text-xs text-gray-600"
           >
-            <span>➕ {{ opt.name }}: {{ opt.value }}</span>
-            <span>{{ opt.price.toLocaleString() }}원</span>
+            <span v-if="opt.name ==='음료선택' && opt.value === 'ice'">➕ 차가운(ICE) 음료.</span>
+            <span v-else-if="opt.name ==='음료선택' && opt.value === 'hot'">➕ 뜨거운(HOT) 음료.</span>
+            <span v-else-if="opt.name === opt.value">➕ {{ opt.value }}</span>
+            <span v-else>➕ {{ opt.name }}: {{ opt.value }}</span>
+
+            <span v-if="opt.name ==='음료선택' && opt.value === 'ice'"></span>
+            <span v-else-if="opt.name ==='음료선택' && opt.value === 'hot'"></span>
+            <span v-else-if="opt.name === opt.value">{{ opt.price.toLocaleString() }}원</span>
+            <span v-else>{{ opt.price.toLocaleString() }}원</span>
           </div>
         </div>
 
@@ -151,32 +176,36 @@ const totalPrice = computed(() => {
 })
 
 const selectedOptionSummaries = computed(() => {
-  return options.value.flatMap(opt => {
-    const selected = selectedOptions.value[opt.id]
-    if (opt.type === 'select' && selected != null) {
-      return [{
-        name: opt.optionName,
-        value: opt.optionItems[selected],
-        price: opt.optionItemsPrice[selected] || 0
-      }]
-    }
-    if (opt.type === 'check' && Array.isArray(selected)) {
-      return selected.map((i: number) => ({
-        name: opt.optionName,
-        value: opt.optionItems[i],
-        price: opt.optionItemsPrice[i] || 0
-      }))
-    }
-    if (opt.type === 'quantity' && selected > 0) {
-      return [{
-        name: opt.optionName,
-        value: `${opt.optionItems[0]} x ${selected}`,
-        price: (opt.optionItemsPrice[0] || 0) * selected
-      }]
-    }
-    return []
-  })
+  return options.value
+    .slice() // 복사
+    .sort((a, b) => a.displayLevel - b.displayLevel) // ✅ displayLevel 정렬
+    .flatMap(opt => {
+      const selected = selectedOptions.value[opt.id]
+      if (opt.type === 'select' && selected != null) {
+        return [{
+          name: opt.optionName,
+          value: opt.optionItems[selected],
+          price: opt.optionItemsPrice[selected] || 0
+        }]
+      }
+      if (opt.type === 'check' && Array.isArray(selected)) {
+        return selected.map((i: number) => ({
+          name: opt.optionName,
+          value: opt.optionItems[i],
+          price: opt.optionItemsPrice[i] || 0
+        }))
+      }
+      if (opt.type === 'quantity' && selected > 0) {
+        return [{
+          name: opt.optionName,
+          value: `${opt.optionItems[0]} x ${selected}`,
+          price: (opt.optionItemsPrice[0] || 0) * selected
+        }]
+      }
+      return []
+    })
 })
+
 
 function closeModal() {
   document.body.style.overflow = ''

@@ -10,9 +10,14 @@
         {{ isOpen ? '🟢 OPEN' : '🔴 CLOSED' }}
       </h1>
 
-      <p class="text-stone-700 text-base font-medium">
-        {{ isOpen ? '문 열었어요!' : '오늘은 쉽니다. 내일 만나요!' }}
-      </p>
+      <!-- 영업 상태 안내 -->
+      <div
+        class="rounded-lg px-4 py-3 text-sm text-center shadow-sm border font-medium"
+        :class="isOpen
+          ? 'bg-green-50 text-green-700 border-green-100'
+          : 'bg-gray-100 text-gray-500 border-gray-200'"
+        v-html="openMessage"
+      ></div>
 
       <!-- ☕ 재미있는 서브 문구 -->
       <p class="text-sm text-stone-500 italic">
@@ -36,12 +41,23 @@
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCompanyStore } from '@/stores/company/useCompanyStore'
-
-const companyStore = useCompanyStore()
+import { getNextOpenMessage } from '~/utils/businessHours'
 const router = useRouter()
+const companyStore = useCompanyStore()
 
-const isOpen = computed(() => {
-  return companyStore.currentCompany?.isOpen ?? false
+
+const currentCompany = computed(() => companyStore.currentCompany)
+const isOpen = computed(() => currentCompany.value?.isOpen ?? false)
+
+const openMessage = computed(() => {
+  if (isOpen.value) {
+    return '✅ 영업중입니다. 많은 이용 부탁드립니다!'
+  }
+
+  const businessHours = currentCompany.value?.businessHours
+  return businessHours
+    ? getNextOpenMessage(businessHours)
+    : '⛔️ 영업 시간이 설정되지 않았습니다.'
 })
 
 const companyId = computed(() => companyStore.currentCompany?.id || '')

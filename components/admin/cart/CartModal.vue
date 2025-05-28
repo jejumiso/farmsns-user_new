@@ -30,7 +30,10 @@
             <div class="flex-1">
               <p class="font-medium">{{ item.productName }}</p>
               <p v-for="opt in item.options" :key="opt.optionId" class="text-sm text-gray-500">
-                - {{ opt.optionName }}: {{ opt.selectedValue }}
+                <span v-if="opt.selectedValue === 'ice'">- 차가운 음료를 선택했어요</span>
+                <span v-else-if="opt.selectedValue === 'hot'">- 뜨거운 음료를 선택했어요</span>
+                <span v-else-if="opt.optionName === '사이즈변경' && opt.selectedValue === '일반'"></span>
+                <span v-else>- {{ opt.optionName }}: {{ opt.selectedValue }}</span>
                 <span v-if="opt.price > 0">(+{{ opt.price.toLocaleString() }}원)</span>
               </p>
               <div class="mt-2 flex items-center justify-between">

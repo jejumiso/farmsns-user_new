@@ -22,10 +22,13 @@
         </button>
       </div>
 
+      <!-- {{ userAuthStore.customerProfile?.deliveryAddressList  }} -->
+
       <div v-if="selectedMethod === 'delivery'" class="bg-gray-100 p-3 rounded-md">
         <p class="font-medium">배송지</p>
         <div v-if="selectedAddress">
-          <p>{{ selectedAddress.label }} - {{ selectedAddress.address_name }}</p>
+          <p>{{ selectedAddress.address_name.replace('제주특별자치도 서귀포시 ','') }}</p>
+          <p>{{ decryptWithIv(selectedAddress.encryptedDetailAddress,userAuthStore.customerProfile?.iv??'') }}</p>
           <button @click="goToAddressManage" class="text-sm text-blue-500" type="button">
             배송지 변경 &gt;
           </button>
@@ -36,7 +39,9 @@
             배송지 등록하기 &gt;
           </button>
         </div>
-        <p v-if="distance !== null">
+        <p v-if="!selectedAddress">
+        </p>
+        <p v-else-if="distance !== null">
           📍 가계↔배송지 거리: <strong>{{ formattedDistance }}</strong>
         </p>
         <p v-else>거리 정보를 보내오는 중…</p>
@@ -48,8 +53,8 @@
           <div>
             <p>{{ item.productName }}</p>
             <p v-if="item.options.length" class="text-xs text-gray-500">
-              {{ item.options.map(opt => opt.selectedValue).join(', ') }}
-            </p>
+            {{ item.options.map(opt => opt.selectedValue.toUpperCase()).join(', ') }}
+          </p>
           </div>
           <div class="text-right">
             <p>{{ item.quantity }}개</p>
@@ -58,9 +63,9 @@
         </div>
 
         <div class="text-right mt-4 text-sm">
-          <p>채 상품금액: {{ cartTotalWithOptions.toLocaleString() }}원</p>
-          <p>쿠폰 할인: -{{ couponDiscount.toLocaleString() }}원</p>
-          <p>포인트 사용: -{{ usedPointInput.toLocaleString() }}원</p>
+          <p>상품금액: {{ cartTotalWithOptions.toLocaleString() }}원</p>
+          <p>쿠폰 할인: {{ couponDiscount.toLocaleString() }}원</p>
+          <p>포인트 사용: {{ usedPointInput.toLocaleString() }}원</p>
           <div v-if="selectedMethod === 'delivery'">
             <p>배송비: {{ deliveryFee.toLocaleString() }}원</p>
           </div>
@@ -142,6 +147,7 @@
   주문하기
 </button>
 
+
       </div>
 
       <CardSliderModal
@@ -174,6 +180,8 @@ import type { Order } from '~/shared-types/order/order'
 import { format } from 'date-fns'
 import type { UserSummary } from '~/shared-types/user/userSummary'
 import type { PaymentMethod, SelectedMethod } from '~/shared-types/order/orderTypes'
+import { decryptWithIv } from '~/shared-utils/crypto/decryption'
+
 
 declare global {
   interface Window {
@@ -318,6 +326,12 @@ async function placeOrder() {
   if (isPlacingOrder.value) return
   isPlacingOrder.value = true
 
+  if(orderSummaryStore.orderSummary.selectedMethod === 'delivery' && !selectedAddress.value) {
+    alert('배송지를 선택해주세요.')
+    isPlacingOrder.value = false
+    return
+  }
+
   try {
     if (!companyStore.currentCompanyId) return alert('회사를 선택해주세요.')
     if (!userAuthStore.currentUser?.uid) return alert('로그인 후 주문해주세요.')
@@ -368,6 +382,7 @@ async function placeOrder() {
       rewardPointPlanned: rewardPointPlanned.value,
       rewardStampPlanned: rewardStampPlanned.value,
       customerMemo: orderSummaryStore.orderSummary.customerMemo ?? '',
+      iv: userAuthStore.customerProfile?.iv ?? '',
       dateCreated: now,
       dateModified: now,
       dateCreatedYYYYmm: yyyymm,

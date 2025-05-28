@@ -1,4 +1,9 @@
+<!-- 📁 components/admin/product/ProductOptions.vue-->
 <template>
+<!-- 옵션 전체를 명확히 감싼 박스 -->
+<div class="bg-gray-100 border border-gray-500 rounded-lg p-4 space-y-4 shadow-sm mt-6">
+
+  <!-- 옵션 목록 -->
   <div class="space-y-4">
     <OptionRenderer
       v-for="option in options"
@@ -9,17 +14,10 @@
       :increaseQty="increaseQty"
       :decreaseQty="decreaseQty"
     />
-
-    <!-- 총 수량 -->
-    <div class="flex items-center justify-between border-t pt-4">
-      <p class="font-medium">총 수량</p>
-      <div class="flex items-center gap-2">
-        <button @click="quantity--" :disabled="quantity <= 1" class="px-2 py-1 bg-gray-200 rounded">-</button>
-        <span class="w-6 text-center">{{ quantity }}</span>
-        <button @click="quantity++" class="px-2 py-1 bg-gray-200 rounded">+</button>
-      </div>
-    </div>
   </div>
+</div>
+
+
 </template>
 
 <script setup lang="ts">
@@ -33,35 +31,36 @@ import OptionRenderer from './OptionRenderer.vue'
 const props = defineProps<{
   product: Product
   selectedOptions?: Record<string, any>
-  quantity?: number
 }>()
 
 const emit = defineEmits<{
   (e: 'update:selectedOptions', value: Record<string, any>): void
-  (e: 'update:quantity', value: number): void
 }>()
 
 const optionStore = useOptionStore()
 const optionGroupStore = useOptionGroupStore()
 
 const selectedOptions = ref<Record<string, any>>(props.selectedOptions ?? {})
-const quantity = ref<number>(props.quantity ?? 1)
 
 // 양방향 바인딩
 watch(selectedOptions, (val) => emit('update:selectedOptions', val), { deep: true })
-watch(quantity, (val) => emit('update:quantity', val))
 
 // 옵션 목록
 const options = computed<Option[]>(() => {
   if (props.product.optionGroupId) {
     const group = optionGroupStore.items.find(g => g.id === props.product.optionGroupId)
     return group
-      ? optionStore.items.filter(opt => group.optionIds.includes(opt.id))
+      ? optionStore.items
+          .filter(opt => group.optionIds.includes(opt.id))
+          .sort((a, b) => a.displayLevel - b.displayLevel)
       : []
   } else {
-    return optionStore.items.filter(opt => props.product.optionIds.includes(opt.id))
+    return optionStore.items
+      .filter(opt => props.product.optionIds.includes(opt.id))
+      .sort((a, b) => a.displayLevel - b.displayLevel)
   }
 })
+
 
 // 초기화 - select 타입은 기본 선택
 watch(options, () => {

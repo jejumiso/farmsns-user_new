@@ -14,7 +14,7 @@
               : 'bg-white text-gray-800'
           ]"
         >
-          {{ item }}
+          {{ /^[a-zA-Z]+$/.test(item) ? item.toUpperCase() : item }}
           <span v-if="option.optionItemsPrice[i] > 0" class="text-sm text-gray-500">
             (+₩{{ option.optionItemsPrice[i].toLocaleString() }})
           </span>

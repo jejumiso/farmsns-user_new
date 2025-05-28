@@ -1,3 +1,4 @@
+<!-- 📁 components/admin/product/OptionRenderer.vue -->
 <template>
   <component
     :is="resolvedComponent"
