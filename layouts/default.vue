@@ -1,3 +1,4 @@
+<!-- layouts/default.vue -->
 <template>
   <div class="min-h-screen flex flex-col">
     <div :class="['flex-1 overflow-y-auto', isFakeMode ? 'pb-[280px]' : 'pb-[100px]']">

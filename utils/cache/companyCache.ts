@@ -1,4 +1,4 @@
-// utils/companyCache.ts
+// 📁 utils/companyCache.ts
 
 import { isRef, toRaw } from "vue"
 
@@ -13,7 +13,20 @@ const CACHE_KEY_PREFIX = 'companyDataCache'
 export function getCompanyCache<T>(type: string, companyId: string): { data: T; updatedAt: number } | null {
   const key = `${CACHE_KEY_PREFIX}:${type}:${companyId}`
   const raw = localStorage.getItem(key)
-  // console.log('restoreCache getCompanyCache', key, raw)
+  if(type === 'category'){
+    console.log('카테고리 캐시 companyId :', companyId)
+    if(!raw) {
+      console.warn('카테고리 캐시 존재하지 않습니다:', key)
+    }else{
+      const parsed = JSON.parse(raw)
+      console.log('카테고리 캐시 읽기 restoreCache KEY -', key, '값 -', parsed.data?.length)
+      console.log('카테고리 캐시 읽기 restoreCache KEY -', key, '값 -', parsed.data?.length)
+      console.log('카테고리 캐시 읽기 restoreCache KEY -', key, '값 -', parsed.data?.length)
+
+    }
+    
+  }
+  
 
   if (!raw) return null
 
@@ -37,6 +50,11 @@ export function getCompanyCache<T>(type: string, companyId: string): { data: T; 
 export function setCompanyCache<T>(type: string, companyId: string, data: T) {
   const key = `${CACHE_KEY_PREFIX}:${type}:${companyId}`
 
+  if(type === 'category'){
+    console.log('저장 카테고리 companyId :', companyId)
+    console.log('저장 restoreCache KEY - ', key, '   값-',data)
+  }
+
   const rawData = isRef(data) ? toRaw(data.value) : toRaw(data)
 
   const wrapped = {
@@ -45,8 +63,7 @@ export function setCompanyCache<T>(type: string, companyId: string, data: T) {
   }
 
   console.log('setCompanyCache', key, wrapped)
-  // 캐시가 없으면 새로 저장
-
+  // 기존 캐시 여부와 상관없이 최신 데이터로 캐시를 갱신합니다
   try {
     localStorage.setItem(key, JSON.stringify(wrapped))
     console.log('✅ 캐시 저장 성공:', key)

@@ -1,4 +1,15 @@
 // 📁 src/utils/cache/versionCache.ts
+
+/*!SECTION
+  설명 : 상품,카데고리,옵션등을 캐싱하는 유틸리티
+
+  앱을 켜면 0부터 시작해서
+  무조건 1회 이상은 호출되는 함수들로 구성되어 있습니다.
+  주의사항은 버전이 0부터 시작하므로
+  company의 각 버전이 1부터 시작하는 것을 가정하고 있습니다.
+
+*/
+
 import {
   getCompanyCache,
   setCompanyCache,

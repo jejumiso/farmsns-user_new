@@ -29,8 +29,21 @@
       function restoreCache(companyId: string): void {
         if (!companyId?.trim()) return
         const cached = getCompanyCache<T[]>(options.cacheKey, companyId)
+        if(options.cacheKey ===  'category'){
+          console.log('복원된 카테고리 캐시 카테고리 캐시 읽기:', cached)
+          console.log('복원된 카테고리 카테고리 캐시 읽기 companyId :', companyId)
+        }else{
+
+        }
+        
         if (cached) {
           items.value = [...cached.data] // ✅ 배열 직접 복원
+        }else{
+          // 캐시가 없는 경우 앱을 최초 실행하는 경우인데
+          // 앱을 실행할 때 마다 
+          // watchCompanyRealtime에서
+          // loadVersionCache으로 버전 체크를 하여
+          // 무조건 1회는 syncFromScratch으 하여 데이터를 불러오게 되어 있음.
         }
       }
       
@@ -73,6 +86,13 @@
         
         items.value = [...merged] as T[]
         error.value = null
+        if(options.cacheKey ===  'category'){
+          console.log('동기화 완료된 카테고리:', items.value)
+          console.log('동기화 완료된 카테고리:', items.value)
+          console.log('동기화 완료된 카테고리:', items.value)
+          console.log('동기화 완료된 카테고리:', items.value)
+          console.log('동기화 완료된 카테고리:', items.value)
+        }
         setCompanyCache(options.cacheKey, companyId, items.value)
 
         loading.value = false

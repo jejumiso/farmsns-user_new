@@ -15,6 +15,8 @@ export async function handleCompanyChange(uid: string | undefined, companyId: st
     const companyStore = useCompanyStore()
 
     // ✅ 회사 정보 불러오기 및 현재 회사 설정
+    // 회사 정버는 리스닝을 하고 있지만
+    // 리스닝이 읽기보다 속도가 조금 느리기 때문에 살려둠.
     await companyStore.fetchCompany(companyId)
 
     // ✅ 캐시 복원

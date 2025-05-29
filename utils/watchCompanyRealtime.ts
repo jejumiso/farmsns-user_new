@@ -31,7 +31,7 @@ export function watchCompanyRealtime(companyId: string) {
   let prevVersions = loadVersionCache(companyId)
   console.log('🔍 이전 버전:', prevVersions)
 
-
+  
   unsubscribeCompany = onSnapshot(companyDocRef, async (snapshot) => {
     console.log('🔄 회사 정보 변경 감지')
     if (!snapshot.exists()) return
@@ -48,17 +48,20 @@ export function watchCompanyRealtime(companyId: string) {
         const majorNew = Math.floor(newVersion)
         const majorOld = Math.floor(oldVersion)
 
+        
         if (majorNew !== majorOld) {
-          console.log(`🔁 ${watcher.label} 스키마 변경 감지 → 전체 초기화`)
+          console.log(`🔁 ${watcher.label} 스키마 변경 감지 → 전체 초기화 ${majorNew} → ${majorOld}`)
           await (watcher.store() as any).syncFromScratch?.(company.id)
 
         } else {
-          console.log(`🔄 ${watcher.label} 단순 변경 감지 → 변경 항목만 동기화`)
+          console.log(`🔄 ${watcher.label} 단순 변경 감지 → 변경 항목만 동기화 ${majorNew} → ${majorOld}`)
           await (watcher.store() as any).syncWithServer?.(company.id)
         }
 
         prevVersions[key] = newVersion
         saveVersionCache(companyId, { [key]: newVersion })
+      }else{
+        console.log(`🔁 ${watcher.label} 스키마 변경 감지 - 변경없음  ${oldVersion} → ${newVersion}`) 
       }
     }
   })

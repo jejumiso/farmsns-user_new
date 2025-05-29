@@ -21,6 +21,7 @@
 
 
 
+
     <!-- 영업 상태 안내 -->
     <div
       class="rounded-lg px-4 py-3 text-sm text-center shadow-sm border font-medium"
@@ -141,8 +142,8 @@ const filteredProducts = computed(() => {
 })
 
 onMounted(async () => {
-  categoryStore.restoreCache(companyId)
-  await categoryStore.syncWithServer(companyId)
+  // categoryStore.restoreCache(companyId)
+  // await categoryStore.syncWithServer(companyId)
 
   viewStore.loadFromCache()
 
@@ -152,8 +153,8 @@ onMounted(async () => {
     viewStore.setCategory(first ? first.id : null)
   }
 
-  productStore.restoreCache(companyId)
-  await productStore.syncWithServer(companyId)
+  // productStore.restoreCache(companyId)
+  // await productStore.syncWithServer(companyId)
 
   await nextTick()
   const y = viewStore.scrollTop
