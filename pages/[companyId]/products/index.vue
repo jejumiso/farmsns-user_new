@@ -147,11 +147,6 @@ onMounted(async () => {
 
   viewStore.loadFromCache()
 
-  const hasValid = categoryStore.items.some(cat => cat.id === viewStore.selectedCategoryId)
-  if (!hasValid) {
-    const first = categories.value[0]
-    viewStore.setCategory(first ? first.id : null)
-  }
 
   // productStore.restoreCache(companyId)
   // await productStore.syncWithServer(companyId)
@@ -163,6 +158,16 @@ onMounted(async () => {
     window.scrollTo({ top: y, behavior: 'auto' })
   }
 })
+watch(
+  () => categories.value,
+  (newCategories) => {
+    if (newCategories.length > 0 && !viewStore.selectedCategoryId) {
+      viewStore.setCategory(newCategories[0].id)
+    }
+  },
+  { immediate: true }
+)
+
 
 window.addEventListener('scroll', () => {
   viewStore.setScrollTop(window.scrollY)

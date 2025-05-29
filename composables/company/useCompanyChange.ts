@@ -17,13 +17,28 @@ export async function handleCompanyChange(uid: string | undefined, companyId: st
     // ✅ 회사 정보 불러오기 및 현재 회사 설정
     // 회사 정버는 리스닝을 하고 있지만
     // 리스닝이 읽기보다 속도가 조금 느리기 때문에 살려둠.
-    await companyStore.fetchCompany(companyId)
+    // await companyStore.fetchCompany(companyId)
+    companyStore.fetchCompany(companyId)
 
-    // ✅ 캐시 복원
-    useProductStore().restoreCache(companyId)
-    useCategoryStore().restoreCache(companyId)
-    useOptionStore().restoreCache(companyId)
-    useOptionGroupStore().restoreCache(companyId)
+
+    const productStore = useProductStore()
+    productStore.restoreCache(companyId)
+    productStore.syncWithServer(companyId)
+
+    const categoryStore = useCategoryStore()
+    categoryStore.restoreCache(companyId)
+    categoryStore.syncWithServer(companyId)
+
+    const optionStore = useOptionStore()
+    optionStore.restoreCache(companyId)
+    optionStore.syncWithServer(companyId)
+    
+    const optionGroupStore = useOptionGroupStore()
+    optionGroupStore.restoreCache(companyId)
+    optionGroupStore.syncWithServer(companyId)
+
+
+
 
     // ✅ 실시간 버전 동기화 시작
     watchCompanyRealtime(companyId)

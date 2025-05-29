@@ -54,14 +54,11 @@ export function setCompanyCache<T>(type: string, companyId: string, data: T) {
     console.log('저장 카테고리 companyId :', companyId)
     console.log('저장 restoreCache KEY - ', key, '   값-',data)
   }
-
   const rawData = isRef(data) ? toRaw(data.value) : toRaw(data)
-
   const wrapped = {
     data: rawData,
     updatedAt: Date.now(),
   }
-
   console.log('setCompanyCache', key, wrapped)
   // 기존 캐시 여부와 상관없이 최신 데이터로 캐시를 갱신합니다
   try {
@@ -70,7 +67,6 @@ export function setCompanyCache<T>(type: string, companyId: string, data: T) {
   } catch (e) {
     console.warn('❌ 캐시 저장 실패:', key, e)
   }
-
 }
 
 /**
