@@ -106,7 +106,7 @@
         class="w-full py-3 mt-4 bg-green-600 text-white rounded-xl shadow hover:bg-green-700 transition-all"
         @click="addToCart"
       >
-        🛒 장바구니에 담기
+        {{ !isAdmin ? '🛒 장바구니에 담기' : '관리자 장바구니 담기' }}
       </button>
       <button
         class="w-full py-3 bg-gray-100 text-gray-700 rounded-xl shadow hover:bg-gray-200 transition-all"
@@ -119,7 +119,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, onBeforeUnmount, onUnmounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useProductStore } from '@/stores/product/useProductStore'
 import { useCartStore } from '@/stores/cart/useCartStore'
@@ -128,6 +128,9 @@ import { useOptionGroupStore } from '@/stores/option-group/useOptionGroupStore'
 import ProductOptions from './ProductOptions.vue'
 import { getImageUrl } from '@/utils/getImageUrl'
 import { useCompanyStore } from '@/stores/company/useCompanyStore'
+import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore'
+
+const authStore = useUserAuthStore()
 const route = useRoute()
 const router = useRouter()
 const cartStore = useCartStore()
@@ -217,7 +220,8 @@ function closeModal() {
 }
 
 function addToCart() {
-  if(!companyStore.currentCompany?.isOpen) {
+  
+  if(!isAdmin && !companyStore.currentCompany?.isOpen) {
     alert('현재 영업 중이 아닙니다. 나중에 다시 시도해주세요.') 
     return
 
@@ -238,4 +242,15 @@ function addToCart() {
 onMounted(() => {
   document.body.style.overflow = 'hidden'
 })
+
+// 보장 차원에서 둘 다 넣을 수 있음
+onBeforeUnmount(() => {
+  document.body.style.overflow = 'auto'
+})
+
+onUnmounted(() => {
+  document.body.style.overflow = 'auto'
+})
+
+const isAdmin = computed(() => {return authStore.customerProfile?.roles?.includes('admin') ?? false})
 </script>

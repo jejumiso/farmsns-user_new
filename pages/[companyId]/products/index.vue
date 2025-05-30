@@ -18,10 +18,6 @@
 </div>
 
 
-
-
-
-
     <!-- 영업 상태 안내 -->
     <div
       class="rounded-lg px-4 py-3 text-sm text-center shadow-sm border font-medium"
@@ -142,22 +138,15 @@ const filteredProducts = computed(() => {
 })
 
 onMounted(async () => {
-  // categoryStore.restoreCache(companyId)
-  // await categoryStore.syncWithServer(companyId)
-
+  // 캐시에서 필터 상태 복원 등 필요한 작업은 유지
   viewStore.loadFromCache()
 
-
-  // productStore.restoreCache(companyId)
-  // await productStore.syncWithServer(companyId)
-
-  await nextTick()
-  const y = viewStore.scrollTop
-  const maxScroll = document.body.scrollHeight - window.innerHeight
-  if (y > 0 && y < maxScroll) {
-    window.scrollTo({ top: y, behavior: 'auto' })
-  }
+  // 스크롤 복원은 Nuxt에 맡기므로 scrollTo 제거
 })
+
+
+
+
 watch(
   () => categories.value,
   (newCategories) => {
@@ -177,4 +166,5 @@ window.addEventListener('scroll', () => {
 
 
 const isFakeMode = computed(() => {return authStore.customerProfile?.roles?.includes('fake') ?? false})
+const isAdmin = computed(() => {return authStore.customerProfile?.roles?.includes('admin') ?? false})
 </script>
