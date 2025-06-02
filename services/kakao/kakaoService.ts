@@ -13,11 +13,7 @@ export function createKakaoService() {
       try {
         const response = await api.post('/api/alligo/profileAuth', { plusid,phonenumber }); // api 인스턴스 사용
         console.log('SMS sent successfully:', response.data);
-        return {
-          isSuccess: response.data.code === 0,
-          message: response.data.message,
-          data: response.data.data, // 필요한 데이터만 반환
-        }; // ApiResponse 타입에 맞게 반환
+        return response.data;// ApiResponse 타입에 맞게 반환
       } catch (error: any) {
         console.error('Failed to send SMS:', error.response?.data || error.message);
         throw new Error(error.response?.data?.message || 'Failed to send SMS');
@@ -28,11 +24,7 @@ export function createKakaoService() {
       try {
         const response = await api.post('/api/alligo/profileAdd', { plusid,authnum, phonenumber ,categorycode}); // api 인스턴스 사용
         console.log('SMS sent successfully:', response.data);
-        return {
-          isSuccess: response.data.code === 0,
-          message: response.data.message,
-          data: response.data.data, // 필요한 데이터만 반환
-        }; // ApiResponse 타입에 맞게 반환
+        return response.data;
       } catch (error: any) {
         console.error('Failed to send SMS:', error.response?.data || error.message);
         throw new Error(error.response?.data?.message || 'Failed to send SMS');
@@ -41,9 +33,9 @@ export function createKakaoService() {
 
     //공통으로 쓰이기에는 좀그렇다
     // getFriendBySenderKey
-    async getFriendBySenderKey(senderkey: string): Promise<ApiResponse> {
+    async getFriendBySenderKey(plusid: string,senderkey: string): Promise<ApiResponse> {
       try {
-        const response = await api.post('/api/alligo/friendList', { senderkey }); // api 인스턴스 사용
+        const response = await api.post('/api/alligo/friendList', { plusid,senderkey }); // api 인스턴스 사용
         console.log('friendList successfully:', response.data);
         if (response.data.isSuccess && response.data.data.length === 0) {
           return {
@@ -58,7 +50,6 @@ export function createKakaoService() {
           message: response.data.message,
           data: response.data.data[0], // ✅ 수정: response.data.data[0]
         };
-        
         
         // ApiResponse 타입에 맞게 반환
       } catch (error: any) {

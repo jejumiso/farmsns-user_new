@@ -63,15 +63,16 @@
             <span>총 상품 금액</span>
             <span class="text-right">{{ orderModel.raw.cartTotalWithOptions.toLocaleString() }}원</span>
             <span>쿠폰 할인</span>
-            <span class="text-right text-red-500">-{{ orderModel.raw.couponDiscountTotal.toLocaleString() }}원</span>
+            <span class="text-right text-red-500">{{ orderModel.raw.couponDiscountTotal.toLocaleString() }}원</span>
             <span>포인트 사용</span>
-            <span class="text-right text-red-500">-{{ orderModel.raw.pointDiscountTotal.toLocaleString() }}P</span>
+            <span class="text-right text-red-500">{{ orderModel.raw.pointDiscountTotal.toLocaleString() }}P</span>
             <span>배송비</span>
             <span class="text-right">{{ orderModel.raw.deliveryFee.toLocaleString() }}원</span>
             <span class="font-semibold">최종 결제 금액</span>
             <span class="text-right font-bold text-black">
-              {{ orderModel.finalAmount.toLocaleString() }}원
+              {{ orderModel.payableAmount.toLocaleString() }}원
             </span>
+            <span v-if="orderModel.raw.selectedAddress">{{ orderModel.raw.selectedAddress.encryptedDetailAddress }}</span>
           </div>
 
           <p class="text-xs text-gray-500 mt-2">

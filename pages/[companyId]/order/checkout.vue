@@ -53,12 +53,29 @@
           <div>
             <p>{{ item.productName }}</p>
             <p v-if="item.options.length" class="text-xs text-gray-500">
-            {{ item.options.map(opt => opt.selectedValue.toUpperCase()).join(', ') }}
-          </p>
+              {{
+                item.options
+                  .map(opt => {
+                    const label = opt.selectedValue
+                    const price = opt.price
+                    return price > 0
+                      ? `${label}(+${price.toLocaleString()}원)`
+                      : label
+                  })
+                  .join(', ')
+              }}
+            </p>
+
           </div>
           <div class="text-right">
             <p>{{ item.quantity }}개</p>
-            <p>{{ (item.priceDiscounted * item.quantity).toLocaleString() }}원</p>
+            <p>
+              {{
+                ((item.priceDiscounted +
+                  item.options.reduce((sum, opt) => sum + opt.price, 0)) * item.quantity
+                ).toLocaleString()
+              }}원
+            </p>
           </div>
         </div>
 
@@ -83,7 +100,7 @@
 
       <div>
         <p class="font-medium">쿠폰 선택</p>
-        <div v-for="coupon in filteredCoupons" :key="coupon.id" class="flex items-center gap-2">
+        <div v-for="coupon in coupons" :key="coupon.id" class="flex items-center gap-2">
           <input
             type="checkbox"
             :value="coupon"
@@ -144,7 +161,7 @@
   class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
   type="button"
 >
-  주문하기
+  주문하기 
 </button>
 
 
@@ -216,16 +233,11 @@ const tempOrderId = ref('')
 const showCardSlider = ref(false)
 
 const availablePoint = computed(() => userAuthStore.customerCompanyActivity?.pointRemaining ?? 0)
-const coupons = computed(() => couponStore.coupons)
+const coupons = computed(() => couponStore.currentCompanyActiveCoupons)
 const companyId = companyStore.currentCompanyId
 
-const filteredCoupons = computed(() => {
-  if (!companyId) return []
-  return coupons.value.filter(coupon =>
-    (coupon.status === 'active') &&
-    (coupon.issuingCompanyId === companyId || (coupon.availableCompanyIds?.includes(companyId)))
-  )
-})
+
+
 
 
 const couponDiscount = computed(() => optimizer.calculateCouponDiscountForSelected())

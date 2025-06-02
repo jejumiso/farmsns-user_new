@@ -51,7 +51,7 @@
 >
   <!-- 왼쪽: 텍스트 정보 -->
   <div class="space-y-1">
-    <p class="text-sm text-purple-600 font-medium">🎟️ 보유 쿠폰 {{ couponStore.coupons.length }}장</p>
+    <p class="text-sm text-purple-600 font-medium">🎟️ 보유 쿠폰 {{ couponStore.currentCompanyAllCoupons.length }}장</p>
     <p class="text-2xl font-bold text-purple-800">
       
     </p>

@@ -33,10 +33,10 @@ export interface Product {
   rewardStamp: number // 지급 스탬프 수
   rewardPoint: number // 지급 포인트 수
 
-  parcelBundleValue: number // 📦 묶음 배송 단위 계산에 기여하는 수치 (기본 1)
+  parcelBundleValue?: number // 📦 묶음 배송 단위 계산에 기여하는 수치 (기본 1)
 
 
-  isDeleted: boolean // 삭제 여부 (soft delete) , deletedproduct카테고리에서 관리됨.
+  isDeleted: boolean // 삭제 여부 (soft delete)
 
   dateCreated: Timestamp | null // 생성 시각
   dateModified: Timestamp | null // 수정 시각

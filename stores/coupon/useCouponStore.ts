@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import type { IssuedCoupon } from '@/shared-types/coupon/issuedCoupon'
 import { createUserIssuedCouponService } from '~/services/IssuedCoupon/issuedCouponService'
 import { useUserAuthStore } from '../userAuth/useUserAuthStore'
+import { useCompanyStore } from '../company/useCompanyStore'
 
 export const useCouponStore = defineStore('couponStore', {
   state: () => ({
@@ -23,6 +24,34 @@ export const useCouponStore = defineStore('couponStore', {
       state.coupons.filter(coupon => coupon.status === 'expired'),
 
     couponCount: (state) => state.coupons.length,
+    // 전체 쿠폰 (status 상관없이 현재 회사에 관련된 것)
+    currentCompanyAllCoupons: (state) => {
+      const companyStore = useCompanyStore()
+      const currentCompanyId = companyStore.currentCompanyId
+      if (!currentCompanyId) return []
+
+      return state.coupons.filter(coupon => 
+        coupon.issuingCompanyId === currentCompanyId ||
+        coupon.availableCompanyIds?.includes(currentCompanyId)
+      )
+    },
+
+    // 현재 회사 + active 상태만 필터링
+    currentCompanyActiveCoupons: (state) => {
+      const companyStore = useCompanyStore()
+      const currentCompanyId = companyStore.currentCompanyId
+      if (!currentCompanyId) return []
+
+      return state.coupons.filter(coupon =>
+        coupon.status === 'active' &&
+        (
+          coupon.issuingCompanyId === currentCompanyId ||
+          coupon.availableCompanyIds?.includes(currentCompanyId)
+        )
+      )
+    }
+
+
   },
 
   actions: {

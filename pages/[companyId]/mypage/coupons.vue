@@ -99,7 +99,7 @@ import type { Timestamp } from '@/shared/firebase/firebaseTypes'
 import { useApi } from '~/composables/useApi'
 import { useUserAuthStore } from '@/stores/userAuth/useUserAuthStore';
 const couponStore = useCouponStore()
-const coupons = computed(() => couponStore.coupons)
+const coupons = computed(() => couponStore.currentCompanyAllCoupons)
 const toast = useToast()
 const api = useApi()
 const authStore = useUserAuthStore()

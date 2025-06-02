@@ -35,7 +35,7 @@ export const useCompanyStore = defineStore('company', {
       this.loading = true
       try {
         const service = createCompanyService('guest')
-        const res = await service.getById(companyId)
+        const res = await service.getById('',companyId)
         if (res.isSuccess && res.data) {
           const company = res.data as Company
           const idx = this.items.findIndex(c => c.id === company.id)
