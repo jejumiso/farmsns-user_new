@@ -23,12 +23,12 @@ import type { CustomerCompanyActivity } from '~/shared-types/customer-company-ac
 definePageMeta({
   layout: false,
 })
+const userAuthStore = useUserAuthStore()
 
 interface LoginResult {
   customToken: string
   companyId: string
-  customerProfile: CustomerProfile
-  customerCompanyActivity: CustomerCompanyActivity | null
+  friendtalkReceiver?: boolean // ✅ 선택적으로 추가 (값이 없을 수도 있으므로 `?`)
 }
 
 
@@ -41,9 +41,19 @@ onMounted(async () => {
     const { loginToken } = route.params as { loginToken: string }
     if (!loginToken) return router.replace('/error')
 
+    const friendtalkCode = route.query.friendtalkCode as string
+    const requestBody: Record<string, any> = {
+      loginToken,
+    }
+    if (friendtalkCode) {
+      console.log(`📨 친구톡 코드 수신: ${friendtalkCode}`)
+      requestBody.friendtalkCode = friendtalkCode
+      userAuthStore.setFriendtalkAttempted(true)
+    }
+
     const { data: res } = await $api.post<ApiResponse<LoginResult>>(
       '/api/userAuth/login-by-token',
-      { loginToken }
+      requestBody
     )
 
     console.log('서버 응답:', res) // ✅ 여기서는 정상적으로 찍힘
@@ -64,6 +74,8 @@ onMounted(async () => {
           console.error('에러 상세:', error);
           throw error; // 기존 catch로 던지게
         });
+    
+    userAuthStore.setFriendtalkReceiver(res.data.friendtalkReceiver === true)
     const target = res.data.companyId
       ? `/${res.data.companyId}/products`
       : `/`

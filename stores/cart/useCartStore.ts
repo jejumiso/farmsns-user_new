@@ -4,6 +4,8 @@ import { defineStore } from 'pinia'
 import type { Product } from '@/shared-types/product/product'
 import type { FixedAmountIssuedCoupon, IssuedCoupon } from '~/shared-types/coupon/issuedCoupon'
 import type { CartItem } from '~/shared-types/cart/cartItem'
+import { useUserAuthStore } from '../userAuth/useUserAuthStore'
+import { getEffectivePrice } from '~/utils/price/getEffectivePrice'
 
 export const useCartStore = defineStore('cart', {
   state: () => ({
@@ -43,6 +45,15 @@ export const useCartStore = defineStore('cart', {
       const key = `${product.id}-${JSON.stringify(options)}`
       const existing = this.items.find((i) => `${i.productId}-${JSON.stringify(i.options)}` === key)
 
+      const authStore = useUserAuthStore()
+      const isFriendtalk = authStore.friendtalkReceiver &&
+                          product.priceFriendtalk &&
+                          product.priceFriendtalk > 0 &&
+                          product.priceDiscounted > product.priceFriendtalk
+
+      const effectivePrice = getEffectivePrice(product)
+
+
       if (existing) {
         existing.quantity += quantity
       } else {
@@ -51,18 +62,20 @@ export const useCartStore = defineStore('cart', {
           productId: product.id,
           productName: product.productName,
           priceOriginal: product.priceOriginal,
-          priceDiscounted: product.priceDiscounted,
+          priceDiscounted: effectivePrice,  // ✅ 여기!
+          priceType: isFriendtalk ? 'friendtalk' : 'default',
           quantity,
           image: product.imageThumbnailFileName,
-          rewardStamp: product.rewardStamp,
-          rewardPoint: product.rewardPoint,
-          rewardExcludedQuantity: 0, // ⭐️ 초기값
-          parcelBundleValue : product.parcelBundleValue?? undefined,
+          rewardStamp: isFriendtalk? 0 : product.rewardStamp,
+          rewardPoint: isFriendtalk? 0 : product.rewardPoint,
+          rewardExcludedQuantity: 0,
+          parcelBundleValue: product.parcelBundleValue ?? undefined,
           options,
         }
         this.items.push(newItem)
       }
     },
+
 
     clearCart() {
       this.items = []

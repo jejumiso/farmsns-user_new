@@ -11,6 +11,7 @@ export interface CartItem {
   productName: string
   priceOriginal: number
   priceDiscounted: number
+  priceType?: 'friendtalk' | 'default' // ✅ 추가
   quantity: number
   image: string
   rewardStamp: number

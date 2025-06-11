@@ -28,6 +28,13 @@
   자동 로그인 테스트(010-1234-1234)
 </NuxtLink>
 
+ <NuxtLink
+  to="/token/a9b7d0363189290146add9cb6eea66905566014a4f2731f28ebe9ca529a5a76d?friendtalkCode=friendtalk0001"
+  class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-4"
+>
+  자동 로그인 테스트(010-1234-1234) / 플친
+</NuxtLink>
+
 <!--<NuxtLink
   to="/token/666722aee1728623ddb406c4f4233da5920a1a4e3ab7fcc561449f957996e061/mypage"
   class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition mb-4"

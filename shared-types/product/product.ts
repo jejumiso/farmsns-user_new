@@ -16,6 +16,8 @@ export interface Product {
 
   priceOriginal: number // 원래 가격
   priceDiscounted: number // 할인 가격
+  priceFriendtalk?: number // 친구톡 수신자 전용 가격 (선택적)
+
 
   imageThumbnailFileName: string // 썸네일 이미지 파일명
   imageGalleryFileNames: string[] // 갤러리 이미지 파일명 목록
@@ -57,6 +59,8 @@ export function createEmptyProduct(): Product {
     productNameShort: '',
     priceOriginal: 0,
     priceDiscounted: 0,
+    priceFriendtalk: undefined, // 또는 0, 필요시
+
     imageThumbnailFileName: '',
     imageGalleryFileNames: [],
     unit: '',

@@ -9,6 +9,9 @@ export default defineNuxtConfig({
     typeCheck: true,
     strict: true,
   },
+  plugins: [
+    '~/plugins/persistedState.client.ts', // 👈 명시적으로 등록
+  ],
 
   app: {
     head: {

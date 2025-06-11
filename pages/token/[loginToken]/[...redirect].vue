@@ -1,3 +1,4 @@
+<!-- 📁 pages/token/[loginToken]/[...redirect].vue -->
 <template>
   <div class="flex min-h-screen items-center justify-center bg-white">
     <div class="text-center space-y-4">
@@ -15,16 +16,17 @@ import { useNuxtApp } from '#app'
 import type { ApiResponse } from '@/shared-types/apiResponse'
 import type { CustomerProfile } from '~/shared-types/customer-profile/customerProfile'
 import type { CustomerCompanyActivity } from '~/shared-types/customer-company-activity/customerCompanyActivity'
+import { useUserAuthStore } from '~/stores/userAuth/useUserAuthStore'
 
 definePageMeta({
   layout: false,
 })
+const userAuthStore = useUserAuthStore()
 
 interface LoginResult {
   customToken: string
   companyId: string
-  customerProfile: CustomerProfile
-  customerCompanyActivity: CustomerCompanyActivity | null
+  friendtalkReceiver?: boolean // ✅ 선택적으로 추가 (값이 없을 수도 있으므로 `?`)
 }
 
 const route = useRoute()
@@ -39,9 +41,20 @@ onMounted(async () => {
 
   if (!loginToken) return router.replace('/error')
 
+  const friendtalkCode = route.query.friendtalkCode as string
+  const requestBody: Record<string, any> = {
+    loginToken,
+  }
+  if (friendtalkCode) {
+    console.log(`📨 친구톡 코드 수신: ${friendtalkCode}`)
+    requestBody.friendtalkCode = friendtalkCode
+    userAuthStore.setFriendtalkAttempted(true)
+  }
+
+
   const { data: res } = await $api.post<ApiResponse<LoginResult>>(
     '/api/userAuth/login-by-token',
-    { loginToken }
+    requestBody
   )
 
   if (!res.isSuccess || !res.data?.customToken) {
@@ -50,6 +63,9 @@ onMounted(async () => {
   }
 
   await signInWithCustomToken($firebaseAuth, res.data.customToken)
+  
+  userAuthStore.setFriendtalkReceiver(res.data.friendtalkReceiver === true)
+
 
   // redirect 세그먼트를 배열로 정리
   const segs = redirect == null

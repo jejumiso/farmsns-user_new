@@ -19,6 +19,9 @@ export const useUserAuthStore = defineStore('userAuth', {
     currentUser: null as User | null,
     customerProfile: null as CustomerProfile | null,
     customerCompanyActivity: null as CustomerCompanyActivity | null,
+    friendtalkReceiver: false, // ✅ 추가
+    friendtalkAttempted: false,        // 코드 유효성 여부와 관계없이 친구톡 링크로 접속한 유저
+
   }),
 
   getters: {
@@ -107,6 +110,10 @@ export const useUserAuthStore = defineStore('userAuth', {
     },
 
     logout() {
+      this.friendtalkReceiver = false
+      this.friendtalkAttempted = false  // ✅ 추가 제안
+
+
       const auth = getAuth()
       const cartStore = useCartStore()
       cartStore.clearCart()
@@ -129,16 +136,30 @@ export const useUserAuthStore = defineStore('userAuth', {
       
       console.log('[userAuthStore] 로그아웃 완료 및 장바구니 초기화')
     },
+    setFriendtalkReceiver(value: boolean) {
+      this.friendtalkReceiver = value
+    },
+    setFriendtalkAttempted(value: boolean) {
+      this.friendtalkAttempted = value
+    }
+
   },
 
   persist: {
     enabled: true,
     strategies: [
       {
-        key: 'userAuth',
+        key: 'userAuth-local',
         storage: localStorage,
         paths: ['currentUser', 'customerProfile', 'customerCompanyActivity'],
       },
+      // {
+      //   key: 'userAuth-session',
+      //   storage: sessionStorage,
+      //   paths: ['friendtalkReceiver', 'friendtalkAttempted'],
+      // },
     ],
-  },
+  }
+
+
 })

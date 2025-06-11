@@ -22,8 +22,6 @@
         </button>
       </div>
 
-      <!-- {{ userAuthStore.customerProfile?.deliveryAddressList  }} -->
-
       <div v-if="selectedMethod === 'delivery'" class="bg-gray-100 p-3 rounded-md">
         <p class="font-medium">배송지</p>
         <div v-if="selectedAddress">
@@ -39,8 +37,7 @@
             배송지 등록하기 &gt;
           </button>
         </div>
-        <p v-if="!selectedAddress">
-        </p>
+        <p v-if="!selectedAddress"></p>
         <p v-else-if="distance !== null">
           📍 가계↔배송지 거리: <strong>{{ formattedDistance }}</strong>
         </p>
@@ -48,7 +45,7 @@
       </div>
 
       <div class="bg-gray-50 p-4 rounded-md">
-        <h2 class="font-semibold text-lg mb-4">🛍️ 주문 요약</h2>
+        <h2 class="font-semibold text-lg mb-4">🍭️ 주문 요약</h2>
         <div v-for="item in cartItems" :key="item.id" class="flex justify-between border-b py-2 text-sm">
           <div>
             <p>{{ item.productName }}</p>
@@ -65,7 +62,6 @@
                   .join(', ')
               }}
             </p>
-
           </div>
           <div class="text-right">
             <p>{{ item.quantity }}개</p>
@@ -88,7 +84,7 @@
           </div>
           <div class="mt-3 text-green-700">
             <p>🎁 적립 예정 포인트: {{ rewardPointPlanned }}P</p>
-            <p>🎟️ 적립 예정 스탰프: {{ rewardStampPlanned }}개</p>
+            <p>🎟️ 적립 예정 스탬프: {{ rewardStampPlanned }}개</p>
           </div>
           <div v-if="hasExcludedReward" class="mt-2 text-red-500 text-xs">
             ※ 일부 상품은 할인 적용으로 리워드가 제외됩니다.
@@ -138,7 +134,7 @@
         <p class="font-medium">결제 수단</p>
         <div class="space-y-2">
           <button
-            v-for="method in paymentMethods"
+            v-for="method in filteredPaymentMethods"
             :key="method.value"
             @click="selectPaymentMethod(method.value)"
             type="button"
@@ -156,15 +152,13 @@
 
       <div class="sticky bottom-0 bg-white p-4 z-10">
         <button
-  @click="placeOrder"
-  :disabled="isPlacingOrder"
-  class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
-  type="button"
->
-  주문하기 
-</button>
-
-
+          @click="placeOrder"
+          :disabled="isPlacingOrder"
+          class="w-full py-3 bg-green-600 text-white rounded hover:bg-green-700 disabled:opacity-50"
+          type="button"
+        >
+          주문하기
+        </button>
       </div>
 
       <CardSliderModal
@@ -220,6 +214,12 @@ const paymentMethods = [
   { value: 'kakaopay', label: '카카오페이' },
   { value: 'easy', label: '비밀번호 간편결제' },
 ] as const
+const filteredPaymentMethods = computed(() => {
+  return userAuthStore.friendtalkReceiver
+    ? paymentMethods.filter(m => m.value === 'easy')
+    : paymentMethods
+})
+
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -480,6 +480,11 @@ function close() {
 
 onMounted(() => {
   orderSummaryStore.updateSelectedAddress()
+    // ✅ 친구톡으로 들어온 경우 paymentMethod 자동 설정
+  if (userAuthStore.friendtalkReceiver) {
+    orderSummaryStore.updateOrderSummary({ paymentMethod: 'easy' })
+  }
+  
   if (!window.AUTHNICE) {
     const script = document.createElement('script')
     script.src = 'https://pay.nicepay.co.kr/v1/js/'
